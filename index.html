@@ -139,6 +139,44 @@ button{font:inherit;color:inherit}
 .fallback{position:fixed;inset:90px 0 200px;overflow-x:auto;display:flex;gap:0;align-items:center;padding:0 16px}
 .fallback canvas,.fallback img{height:min(46vh,380px);width:auto}
 
+/* the hunt (timed game) */
+.hud{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(env(safe-area-inset-bottom,0px) + 140px);z-index:3;display:grid;grid-template-columns:auto minmax(0,1fr);gap:12px;align-items:center;width:min(460px,calc(100% - 32px));padding:10px;border-radius:12px;background:var(--panel-solid);border:1px solid rgba(212,167,72,.45);box-shadow:0 14px 34px rgba(0,0,0,.55)}
+.hud canvas{width:104px;height:104px;border-radius:8px;display:block;background:#d8c7a0;box-shadow:inset 0 0 0 2px rgba(212,167,72,.6)}
+.hud .row1{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.hud .find{font-family:var(--display);font-size:20px;color:var(--weld)}
+.hud .count{font-size:13px;font-weight:700;letter-spacing:.08em;color:var(--muted);font-variant-numeric:tabular-nums}
+.hud .clock{font-size:30px;font-weight:700;font-variant-numeric:tabular-nums;line-height:1.1;margin-top:2px}
+.hud .clock.low{color:#e07a5f}
+.tbar{height:4px;border-radius:2px;background:rgba(234,223,200,.14);overflow:hidden;margin:6px 0 8px}
+.tbar i{display:block;height:100%;background:var(--weld);transform-origin:0 50%}
+.hud .acts{display:flex;gap:6px;flex-wrap:wrap}
+.hud .btn{height:30px;font-size:13px;padding:0 10px}
+.zone{position:absolute;top:-3px;bottom:-3px;border:2px dashed #e07a5f;background:rgba(224,122,95,.18);border-radius:4px;pointer-events:none;transition:left .25s,width .25s}
+.flash{position:fixed;z-index:3;width:90px;height:90px;margin:-45px 0 0 -45px;border-radius:50%;pointer-events:none;animation:flash .9s ease-out forwards}
+.flash.hit{border:4px solid #d4a748;box-shadow:0 0 0 6px rgba(212,167,72,.35)}
+.flash.miss{border:3px solid #e07a5f}
+.flash span{position:absolute;left:50%;top:100%;transform:translateX(-50%);margin-top:6px;white-space:nowrap;font-weight:700;font-size:14px;padding:3px 8px;border-radius:10px;background:rgba(20,15,10,.85)}
+.flash.hit span{color:#d4a748}.flash.miss span{color:#e07a5f}
+@keyframes flash{0%{transform:scale(.4);opacity:1}70%{opacity:1}100%{transform:scale(1.25);opacity:0}}
+.levels{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:14px 0 6px}
+.level{display:grid;gap:4px;text-align:left;padding:14px;border-radius:10px;border:1px solid var(--line);background:rgba(234,223,200,.04);cursor:pointer;color:var(--text);font:inherit}
+.level:hover,.level:focus-visible{border-color:var(--weld);background:rgba(212,167,72,.1);outline:none}
+.level b{font-family:var(--display);font-weight:400;font-size:22px;color:var(--weld)}
+.level span{font-size:13.5px;line-height:1.4;color:var(--muted)}
+.level em{font-style:normal;font-size:12px;font-weight:700;letter-spacing:.08em;color:var(--text);font-variant-numeric:tabular-nums}
+.result{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:12px 0}
+.result div{border:1px solid var(--line);border-radius:8px;padding:10px 12px}
+.result b{display:block;font-family:var(--display);font-weight:400;font-size:26px;color:var(--weld);font-variant-numeric:tabular-nums}
+.result span{font-size:12px;color:var(--muted);letter-spacing:.04em}
+.brag{display:flex;gap:8px;align-items:stretch;margin-top:8px}
+.brag textarea{flex:1;min-width:0;resize:none;height:74px;border-radius:8px;border:1px solid var(--line);background:#15110d;color:var(--text);font:14px/1.4 var(--sans);padding:8px 10px}
+.gotlist{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
+.gotlist canvas{width:56px;height:56px;border-radius:6px;opacity:.35}
+.gotlist canvas.ok{opacity:1;box-shadow:0 0 0 2px #d4a748}
+body.gaming .pin,body.gaming #exitBtn{display:none!important}
+body.gaming .caption{visibility:hidden}
+body.gaming .dock{background:linear-gradient(to top,rgba(12,9,6,.94) 40%,rgba(12,9,6,0))}
+@media (max-width:640px){.levels,.result{grid-template-columns:1fr}.hud{bottom:calc(env(safe-area-inset-bottom,0px) + 132px)}.hud canvas{width:84px;height:84px}.hud .acts .btn{padding:0 9px}.hud .clock{font-size:24px}}
 /* spot-it pins */
 #pins{position:fixed;inset:0;pointer-events:none;z-index:2}
 .pin{position:absolute;left:0;top:0;width:34px;height:34px;margin:-17px 0 0 -17px;border-radius:50%;border:2px solid #fff4dc;background:rgba(155,62,43,.9);color:#fff4dc;font:700 15px/30px var(--sans);text-align:center;cursor:pointer;pointer-events:auto;box-shadow:0 2px 10px rgba(0,0,0,.45);transition:background .2s;will-change:transform}
@@ -225,6 +263,7 @@ button{font:inherit;color:inherit}
   <div class="tools">
     <button class="btn" id="walk" aria-pressed="false" title="Walk along the tapestry (Space)"><svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path id="walkIcon" d="M4 2.5v11l9-5.5z"/></svg><span class="lbl">Walk</span></button>
     <button class="btn" id="angle" aria-pressed="false" title="Toggle a gallery angle (A)"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M2 12 L8 4 L14 12"/><path d="M2 12h12"/></svg><span class="lbl">Angle</span></button>
+    <button class="btn" id="gameBtn" title="The Hunt: a timed challenge"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><circle cx="8" cy="9" r="5.5"/><path d="M8 9V6M8 9l2 1.5M6.5 1.5h3"/></svg><span class="lbl">The Hunt</span></button>
     <button class="btn" id="huntBtn" title="Spot-it hunt"><span class="lbl">Spot it</span> <span class="count" id="huntCount">0/10</span></button>
     <button class="btn" id="sideBtn" aria-pressed="false" title="Map, facts and tally"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M1.5 3.5l4-1.5 5 2 4-1.5v10l-4 1.5-5-2-4 1.5z"/><path d="M5.5 2v10M10.5 4v10"/></svg><span class="lbl">Map</span></button>
     <button class="btn icon" id="zoomOut" title="Step back (−)" aria-label="Step back">−</button>
@@ -234,6 +273,15 @@ button{font:inherit;color:inherit}
 </header>
 
 <div id="pins" aria-label="Details to spot"></div>
+<div class="hud" id="hud" hidden role="status" aria-live="polite">
+  <canvas id="gThumb" width="208" height="208" aria-label="The detail to find"></canvas>
+  <div>
+    <div class="row1"><span class="find">Find this</span><span class="count" id="gCount">1 / 6</span></div>
+    <div class="clock" id="gClock">2:00</div>
+    <div class="tbar"><i id="gBar"></i></div>
+    <div class="acts"><button class="btn" id="gZone"><span class="lbl">Go to the </span>zone</button><button class="btn" id="gSkip">Skip −10s</button><button class="btn" id="gQuit">Quit</button></div>
+  </div>
+</div>
 <div class="pop" id="pop" hidden role="dialog" aria-labelledby="popTitle"><div class="eyebrow" id="popEye">Spotted</div><h3 id="popTitle"></h3><p id="popText"></p><div class="row"><span id="popCount"></span><button class="btn" id="popClose">Keep walking</button></div></div>
 <aside class="side" id="side">
   <div class="panel"><div class="plabel">1066 <span id="mapPlace">Bosham</span></div><svg id="map" viewBox="0 0 250 190" role="img" aria-label="Sketch map of southern England and northern France showing where the story is"></svg></div>
@@ -259,7 +307,7 @@ button{font:inherit;color:inherit}
   <div class="scrubwrap">
     <div class="scrub" id="scrub" tabindex="0" role="slider" aria-label="Position along the tapestry" aria-valuemin="0" aria-valuemax="68" aria-valuenow="0">
       <canvas id="strip"></canvas>
-      <div class="win" id="win"></div>
+      <div class="win" id="win"></div><div class="zone" id="gZoneBox" hidden></div>
     </div>
     <div class="ruler" id="ruler"></div>
     <div class="credit"><span class="cfull">Photography: La Fabrique de patrimoines en Normandie, 2017, for the City of Bayeux · DRAC Normandie · Université de Caen Normandie · CNRS · ENSICAEN, via Wikimedia Commons</span><span class="cshort">Photos: City of Bayeux · La Fabrique de patrimoines en Normandie, 2017</span><button id="creditBtn">How this was made &amp; credits</button></div>
@@ -288,6 +336,30 @@ button{font:inherit;color:inherit}
   </div>
 </div>
 
+<div class="sheet" id="gameSheet" hidden>
+  <div class="card wide" role="dialog" aria-modal="true" aria-labelledby="gameTitle">
+    <div id="gIntro">
+      <h2 id="gameTitle">The Hunt</h2>
+      <p class="sub">Six details, one clock. Can you find them on the real cloth?</p>
+      <p>You'll see a close-up of the tapestry. Walk to the dashed zone on the ruler, find that exact spot and tap it. The zone narrows the longer you look. A wrong tap costs 3 seconds; skipping costs 10.</p>
+      <div class="levels">
+        <button class="level" data-level="squire"><b>Squire</b><span>A small zone, plenty of time.</span><em>3 m zone · 2:00 · best <i class="best" data-l="squire">–</i></em></button>
+        <button class="level" data-level="knight"><b>Knight</b><span>A wider zone and a faster clock.</span><em>8 m zone · 1:40 · best <i class="best" data-l="knight">–</i></em></button>
+        <button class="level" data-level="duke"><b>Duke</b><span>A third of the tapestry to search.</span><em>22 m zone · 1:30 · best <i class="best" data-l="duke">–</i></em></button>
+      </div>
+      <div class="row"><button class="btn" id="gClose">Back to walking</button></div>
+    </div>
+    <div id="gResult" hidden>
+      <h2 id="gResTitle">Round complete</h2>
+      <p class="sub" id="gResSub"></p>
+      <div class="result"><div><b id="gResFound">0/6</b><span>found</span></div><div><b id="gResTime">0s</b><span>time taken</span></div><div><b id="gResScore">0</b><span id="gResBest">score</span></div></div>
+      <div class="gotlist" id="gGot"></div>
+      <h3>Challenge a friend</h3>
+      <div class="brag"><textarea id="gBrag" readonly aria-label="Your result, ready to share"></textarea><button class="btn" id="gCopy">Copy</button></div>
+      <div class="row" style="gap:8px"><button class="btn" id="gAgain">Play again</button><button class="btn" id="gDone">Back to walking</button></div>
+    </div>
+  </div>
+</div>
 <div class="sheet" id="huntSheet" hidden>
   <div class="card wide" role="dialog" aria-modal="true" aria-labelledby="huntTitle">
     <h2 id="huntTitle">Spot it</h2>
@@ -357,6 +429,7 @@ button{font:inherit;color:inherit}
     <ul>
       <li>Drag, scroll, or <kbd>←</kbd> <kbd>→</kbd> to walk. <kbd>[</kbd> <kbd>]</kbd> jump a section.</li>
       <li>Pinch, <kbd>+</kbd> <kbd>−</kbd> or ctrl-scroll to look closer. Drag up and down to tilt.</li>
+      <li><b>The Hunt</b> is a timed game: find six close-ups on the cloth before the clock runs out.</li>
       <li><kbd>Space</kbd> walks on its own; <kbd>A</kbd> swings to a gallery angle.</li>
     </ul>
     <div class="row" style="gap:8px"><button class="btn" id="infoMaking">How this was made &amp; credits</button><button class="btn" id="closeInfo">Back to the tapestry</button></div>
@@ -681,7 +754,7 @@ async function build(){
 function webgl(){try{const c=document.createElement('canvas');return!!(c.getContext('webgl2')||c.getContext('webgl'))}catch(e){return false}}
 function fallback(){const f=document.createElement('div');f.className='fallback';canvases.forEach(c=>f.appendChild(c));document.body.appendChild(f);stage.remove();gateReady();document.getElementById('hint').textContent='3D view unavailable here; scroll sideways instead';setupStrip();let idx=0;f.addEventListener('scroll',()=>{const s=f.scrollLeft/(f.scrollWidth-f.clientWidth||1)*TOTAL;setPos(s);});updateCaption(0);}
 
-let renderer,scene,camera,spot,fill;
+const meshes=[];let renderer,scene,camera,spot,fill;
 const st={s:.7,sT:.7,dist:3.8,distT:3.8,yaw:-.95,yawT:-.95,pitch:.32,pitchT:.32,v:0,walk:false,ly:0,lyT:0};
 function ripple(x,y){return .014*Math.sin(x*6.3)+.009*Math.sin(x*2.2+1.3)+.004*Math.sin(x*15.7+y*4)+.006*Math.sin(x*1.1)*(y+.25)}
 function world(){
@@ -699,7 +772,7 @@ function world(){
  let x0=0;canvases.forEach((c,i)=>{const tex=c instanceof HTMLImageElement?new THREE.Texture(c):new THREE.CanvasTexture(c);tex.needsUpdate=true;tex.anisotropy=aniso;tex.encoding=THREE.sRGBEncoding;
   const sw=SLICE_W(i)/PXM,shh=SLICE_H/PXM;const geo=new THREE.PlaneGeometry(sw,shh,Math.round(sw*40),6);const pos=geo.attributes.position;const cx=x0+sw/2;x0+=sw;for(let v=0;v<pos.count;v++){const lx=pos.getX(v),ly=pos.getY(v);pos.setZ(v,ripple(cx+lx,ly))}geo.computeVertexNormals();
   const mat=new THREE.MeshStandardMaterial({map:tex,bumpMap:tex,bumpScale:.0018,roughness:.93,metalness:0,side:THREE.DoubleSide});
-  const mesh=new THREE.Mesh(geo,mat);mesh.position.x=cx;scene.add(mesh)});
+  const mesh=new THREE.Mesh(geo,mat);mesh.position.x=cx;mesh.userData={i,px0:(x0-sw)*PXM};meshes.push(mesh);scene.add(mesh)});
  resize();addEventListener('resize',resize);setupInput();setupStrip();gateReady();updateCaption(0,true);requestAnimationFrame(tick);
 }
 function resize(){if(!renderer)return;const w=innerWidth,h=innerHeight;renderer.setSize(w,h,false);camera.aspect=w/h;camera.updateProjectionMatrix();drawStrip()}
@@ -713,7 +786,7 @@ function tick(now){const dt=Math.min(.05,(now-last)/1000);last=now;
  const k=reduce?1:1-Math.pow(now<intro?.18:.0009,dt);st.s+=(st.sT-st.s)*k;st.dist+=(st.distT-st.dist)*k;st.yaw+=(st.yawT-st.yaw)*k*.8;st.pitch+=(st.pitchT-st.pitch)*k;
  st.ly+=(st.lyT-st.ly)*(reduce?1:1-Math.pow(.02,dt));const tx=st.s,ty=-.14*Math.min(1,st.dist/1.2)+st.ly,tz=0;camera.position.set(tx+st.dist*Math.sin(st.yaw)*Math.cos(st.pitch),ty+st.dist*Math.sin(st.pitch),tz+st.dist*Math.cos(st.yaw)*Math.cos(st.pitch));camera.lookAt(tx,ty,tz);
  spot.position.set(tx-.5,1.35,1.1);spot.target.position.set(tx+.15,0,0);
- renderer.render(scene,camera);updateUI();updateExtras();requestAnimationFrame(tick)}
+ renderer.render(scene,camera);updateUI();updateExtras();updateGame(now);requestAnimationFrame(tick)}
 
 /* ================= Input ================= */
 let dragging=false;
@@ -725,7 +798,7 @@ function setupInput(){const ptrs=new Map();let lastX=0,lastY=0,lastT=0,pinch0=0,
  const up=e=>{ptrs.delete(e.pointerId);if(ptrs.size<2)pinch0=0;if(ptrs.size===0){dragging=false;stage.classList.remove('drag');if(performance.now()-lastT>80)st.v=0}};
  stage.addEventListener('pointerup',up);stage.addEventListener('pointercancel',up);
  stage.addEventListener('wheel',e=>{e.preventDefault();hideHint();if(st.walk)setWalk(false);if(e.ctrlKey){st.distT*=Math.exp(e.deltaY*.01)}else{const d=Math.abs(e.deltaX)>Math.abs(e.deltaY)?e.deltaX:e.deltaY;st.sT+=d*.0018*st.dist}},{passive:false});
- addEventListener('keydown',e=>{if(!entered)return;if(e.key==='Escape'){for(const id of['huntSheet','shopSheet','makingSheet'])if(!$(id).hidden){closeSheet(id);return}if(!$('pop').hidden){$('pop').hidden=true;return}}if(!$('huntSheet').hidden||!$('shopSheet').hidden||!$('makingSheet').hidden)return;if(!document.getElementById('sheet').hidden){if(e.key==='Escape')closeInfo();return}const k=e.key;
+ addEventListener('keydown',e=>{if(!entered)return;if(e.key==='Escape'){for(const id of['huntSheet','shopSheet','makingSheet','gameSheet'])if(!$(id).hidden){closeSheet(id);return}if(!$('pop').hidden){$('pop').hidden=true;return}}if(!$('huntSheet').hidden||!$('shopSheet').hidden||!$('makingSheet').hidden||!$('gameSheet').hidden)return;if(!document.getElementById('sheet').hidden){if(e.key==='Escape')closeInfo();return}const k=e.key;
   if(k==='ArrowRight'){st.sT+=.25*st.dist;hideHint()}else if(k==='ArrowLeft'){st.sT-=.25*st.dist;hideHint()}
   else if(k===']'||k==='PageDown')go(tgt()+1);else if(k==='['||k==='PageUp')go(tgt()-1);
   else if(k==='+'||k==='='){st.distT*=.8}else if(k==='-'||k==='_'){st.distT*=1.25}
@@ -757,6 +830,53 @@ function drawStrip(){if(!canvases.length)return;const r=scrub.getBoundingClientR
 function setPos(s){st.s=st.sT=s;updateUI()}
 function updateUI(){const i=secAt(st.s);updateCaption(i);const m=st.s/TOTAL*REAL;document.getElementById('cMetre').textContent=m.toFixed(1)+' m from the start';scrub.setAttribute('aria-valuenow',m.toFixed(1));
  const vw=renderer?viewWidth():1;const f0=(st.s-vw/2)/TOTAL,f1=(st.s+vw/2)/TOTAL;win.style.left=(Math.max(0,f0)*100)+'%';win.style.width=(Math.max(.004,Math.min(1,f1)-Math.max(0,f0))*100)+'%'}
+
+/* ================= The Hunt: timed search-and-find ================= */
+const TARGETS=[[400,350],[2520,260],[3320,350],[4280,170],[5160,170],[6040,170],[6720,170],[7440,140],[8760,260],[9920,290],[10840,170],[12040,290],[13080,200],[13760,200],[14680,140],[15560,380],[16440,140],[17200,170],[17880,350],[18760,140],[20040,320],[21120,170],[21960,170],[22680,230],[23480,200],[24240,290],[25440,290],[26240,200],[27480,290],[28240,230],[29280,140],[30360,230],[31760,140],[35120,260],[36120,230],[37280,290],[37960,230],[38920,170],[39680,260],[40760,350],[41440,170],[42120,170],[42960,170],[43640,290],[44720,260],[45440,380],[46280,320],[47160,380],[49120,380],[50160,140],[50840,140],[51800,170],[58040,350],[60080,170],[60960,380],[61840,320],[62880,200],[63640,200],[64800,200],[65560,230],[66240,200],[67040,380]];
+const LEVELS={squire:{name:'Squire',zone:3,time:120},knight:{name:'Knight',zone:8,time:100},duke:{name:'Duke',zone:22,time:90}};
+const ROUND=6,CROP=170,HITR=105;
+const game={on:false};
+const bestOf=l=>{try{return +localStorage.getItem('bayeux-best-'+l)||0}catch(e){return 0}};
+const setBest=(l,v)=>{try{localStorage.setItem('bayeux-best-'+l,v)}catch(e){}};
+function showBests(){document.querySelectorAll('.best').forEach(el=>{const b=bestOf(el.dataset.l);el.textContent=b?b:'–'})}
+function drawCrop(cv,x,y,size){const g=cv.getContext('2d');g.fillStyle='#d8c7a0';g.fillRect(0,0,cv.width,cv.height);let sx=x-size/2;const sy=y-size/2;let dx=0;const k=cv.width/size;
+ while(dx<size){const gx=sx+dx;const i=Math.min(SLICES-1,Math.floor(gx/4096));const src=canvases[i];const sc=(src.naturalWidth||src.width)/SLICE_W(i);const lx=gx-i*4096;const w=Math.min(size-dx,SLICE_W(i)-lx);
+  if(w<=0)break;g.drawImage(src,lx*sc,sy*sc,w*sc,size*sc,dx*k,0,w*k,size*k);dx+=w}}
+function pickTargets(){const a=TARGETS.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a.slice(0,ROUND)}
+function openGame(){closeAllSheets();$('gIntro').hidden=false;$('gResult').hidden=true;showBests();$('gameSheet').hidden=false;document.querySelector('.level').focus()}
+function closeAllSheets(){for(const id of['sheet','huntSheet','shopSheet','makingSheet','gameSheet'])$(id).hidden=true;$('pop').hidden=true}
+$('gameBtn').onclick=openGame;$('gClose').onclick=()=>closeSheet('gameSheet');$('gDone').onclick=()=>closeSheet('gameSheet');$('gAgain').onclick=()=>startGame(game.level);
+document.querySelectorAll('.level').forEach(b=>b.onclick=()=>startGame(b.dataset.level));
+function startGame(level){closeAllSheets();const L=LEVELS[level];Object.assign(game,{on:true,level,L,list:pickTargets(),idx:0,got:[],misses:0,skips:0,start:performance.now(),end:performance.now()+L.time*1000});
+ document.body.classList.add('gaming');if(st.walk)setWalk(false);$('hud').hidden=false;$('gZoneBox').hidden=false;st.distT=Math.min(Math.max(st.distT,1.1),1.6);st.yawT=0;st.pitchT=.02;$('angle').setAttribute('aria-pressed',false);nextTarget()}
+function nextTarget(){const t=game.list[game.idx];game.tStart=performance.now();drawCrop($('gThumb'),t[0],t[1],CROP);$('gCount').textContent=(game.idx+1)+' / '+ROUND;
+ const zw=game.L.zone,tm=t[0]/PXM;let c=tm+(Math.random()-.5)*zw*.7;c=Math.max(zw/2,Math.min(TOTAL-zw/2,c));game.zc=c;updateZone()}
+function zoneNow(){const t=game.list[game.idx],tm=t[0]/PXM,f=Math.min(1,(performance.now()-game.tStart)/30000),w=game.L.zone*(1-.6*f),c=game.zc+(tm-game.zc)*f;return[Math.max(0,c-w/2),Math.min(TOTAL,c+w/2)]}
+function updateZone(){const[a,b]=zoneNow();const z=$('gZoneBox');z.style.left=(a/TOTAL*100)+'%';z.style.width=Math.max(.6,(b-a)/TOTAL*100)+'%'}
+$('gZone').onclick=()=>{const[a,b]=zoneNow();st.sT=(a+b)/2;st.v=0;st.lyT=0};
+$('gSkip').onclick=()=>{if(!game.on)return;game.end-=10000;game.skips++;game.idx++;if(game.idx>=ROUND)endGame();else nextTarget()};
+$('gQuit').onclick=()=>{game.on=false;document.body.classList.remove('gaming');$('hud').hidden=true;$('gZoneBox').hidden=true};
+let lastZ=0;function updateGame(now){if(!game.on)return;const left=Math.max(0,game.end-now);const s=Math.ceil(left/1000);$('gClock').textContent=Math.floor(s/60)+':'+String(s%60).padStart(2,'0');$('gClock').classList.toggle('low',left<15000);$('gBar').style.transform=`scaleX(${(left/(game.L.time*1000)).toFixed(4)})`;
+ if(now-lastZ>250){lastZ=now;updateZone()}if(left<=0)endGame()}
+function flash(x,y,hit,label){const f=document.createElement('div');f.className='flash '+(hit?'hit':'miss');f.style.left=x+'px';f.style.top=y+'px';f.innerHTML='<span></span>';f.querySelector('span').textContent=label;document.body.appendChild(f);setTimeout(()=>f.remove(),950)}
+const ray=window.THREE?new THREE.Raycaster():null,ndc=window.THREE?new THREE.Vector2():null;
+function stripAt(cx,cy){if(!ray||!camera)return null;ndc.set(cx/innerWidth*2-1,-(cy/innerHeight)*2+1);ray.setFromCamera(ndc,camera);const hit=ray.intersectObjects(meshes,false)[0];if(!hit||!hit.uv)return null;const m=hit.object.userData;return[m.px0+hit.uv.x*SLICE_W(m.i),(1-hit.uv.y)*SLICE_H]}
+function handleTap(cx,cy){if(!game.on)return;const p=stripAt(cx,cy);if(!p)return;const t=game.list[game.idx];
+ if(Math.abs(p[0]-t[0])<=HITR&&Math.abs(p[1]-t[1])<=HITR){game.got.push(game.idx);flash(cx,cy,true,'Found it!');game.idx++;if(game.idx>=ROUND)setTimeout(endGame,500);else nextTarget()}
+ else{game.misses++;game.end-=3000;flash(cx,cy,false,'Not here · −3s')}}
+function endGame(){if(!game.on)return;game.on=false;document.body.classList.remove('gaming');$('hud').hidden=true;$('gZoneBox').hidden=true;
+ const now=performance.now(),left=Math.max(0,(game.end-now)/1000),used=Math.round(Math.min(game.L.time,(now-game.start)/1000)),n=game.got.length,score=n*100+(n===ROUND?Math.round(left)*5:0);
+ const prev=bestOf(game.level),isBest=score>prev;if(isBest)setBest(game.level,score);
+ $('gResTitle').textContent=n===ROUND?'All six found!':(left<=0?"Time's up":'Round over');
+ $('gResSub').textContent=n===ROUND?`A true ${game.L.name.toLowerCase()} of the tapestry.`:`You found ${n} of ${ROUND} as a ${game.L.name}.`;
+ $('gResFound').textContent=n+'/'+ROUND;$('gResTime').textContent=used+'s';$('gResScore').textContent=score;$('gResBest').textContent=isBest&&score>0?'new best!':'score · best '+Math.max(prev,score);
+ const got=$('gGot');got.innerHTML='';game.list.forEach((t,i)=>{const c=document.createElement('canvas');c.width=c.height=112;drawCrop(c,t[0],t[1],CROP);if(game.got.includes(i))c.className='ok';got.appendChild(c)});
+ $('gBrag').value=`I found ${n}/${ROUND} hidden details on the Bayeux Tapestry as a ${game.L.name} in ${used}s (score ${score}). Can you beat me? https://emmabot.github.io/bayeux-walk/`;
+ $('gIntro').hidden=true;$('gResult').hidden=false;$('gameSheet').hidden=false;$('gAgain').focus()}
+$('gCopy').onclick=()=>{const ta=$('gBrag');const done=()=>{$('gCopy').textContent='Copied';setTimeout(()=>$('gCopy').textContent='Copy',1600)};try{navigator.clipboard.writeText(ta.value).then(done,()=>{ta.select()})}catch(e){ta.select()}};
+$('gameSheet').addEventListener('click',e=>{if(e.target.id==='gameSheet')closeSheet('gameSheet')});
+(function(){let d=null;stage.addEventListener('pointerdown',e=>{d={x:e.clientX,y:e.clientY,t:performance.now(),id:e.pointerId,n:(d&&d.n||0)+1}},true);
+ stage.addEventListener('pointerup',e=>{if(!d)return;const moved=Math.hypot(e.clientX-d.x,e.clientY-d.y),dt=performance.now()-d.t;if(moved<10&&dt<450)handleTap(e.clientX,e.clientY);d=null},true)})();
 
 build();
 })();

@@ -7,6 +7,7 @@ Walk the whole Bayeux Tapestry in your browser, hung at true scale on a gallery 
 - Enter with a winning ticket, then drag, scroll or use the arrow keys to walk.
 - Real Latin inscriptions with translations and notes for 30 sections.
 - A spot-it hunt for ten details, a map of 1066, a running tally and a gift-shop exit.
+- **The Hunt**, a timed search-and-find game: find six close-ups of the real cloth before the clock runs out, at Squire, Knight or Duke level.
 
 ## Credits
 
