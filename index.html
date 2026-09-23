@@ -1,0 +1,713 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="Walk the whole Bayeux Tapestry in 3D at true scale, from the public-domain 2017 photography. Spot hidden details, follow the map of 1066, and exit through the gift shop.">
+<meta property="og:type" content="website">
+<meta property="og:title" content="The Bayeux Tapestry: a 3D walk">
+<meta property="og:description" content="You've won a ticket. Walk all 68 metres of 1066 in your browser, from the real tapestry photography.">
+<meta property="og:url" content="https://emmabot.github.io/bayeux-walk/">
+<meta property="og:image" content="https://emmabot.github.io/bayeux-walk/og.jpg">
+<meta property="og:image:width" content="1200"><meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="The Bayeux Tapestry: a 3D walk">
+<meta name="twitter:description" content="You've won a ticket. Walk all 68 metres of 1066 in your browser.">
+<meta name="twitter:image" content="https://emmabot.github.io/bayeux-walk/og.jpg">
+<style>html{color-scheme:dark}img{max-width:100%}[hidden]{display:none!important}</style>
+<title>Bayeux Tapestry Walk</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Alegreya+SC:wght@700&family=Alegreya:ital,wght@0,400;0,500;1,400&family=Alegreya+Sans:wght@400;500;700&family=Uncial+Antiqua&display=swap">
+<style>
+:root{
+  color-scheme: dark;
+  --ground:#15110d;
+  --panel:rgba(28,22,16,.88);
+  --panel-solid:#1f1912;
+  --line:rgba(234,223,200,.14);
+  --text:#ece2cb;
+  --muted:#a8997e;
+  --weld:#d4a748;
+  --madder:#b9563d;
+  --woad:#6f8ea6;
+  --display:"Uncial Antiqua","Alegreya",Georgia,serif;
+  --serif:"Alegreya",Georgia,"Times New Roman",serif;
+  --sans:"Alegreya Sans","Gill Sans","Segoe UI",system-ui,sans-serif;
+}
+html,body{height:100%}
+[hidden]{display:none!important}
+body{margin:0;background:var(--ground);color:var(--text);font-family:var(--sans);overflow:hidden;-webkit-font-smoothing:antialiased}
+#stage{position:fixed;inset:0;touch-action:none;cursor:grab}
+#stage.drag{cursor:grabbing}
+#stage canvas{display:block;width:100%;height:100%}
+button{font:inherit;color:inherit}
+.top{position:fixed;left:0;right:0;top:0;padding:calc(env(safe-area-inset-top,0px) + 14px) 18px 30px;display:flex;align-items:flex-start;justify-content:space-between;gap:12px;pointer-events:none;background:linear-gradient(to bottom,rgba(12,9,6,.85),rgba(12,9,6,0))}
+.brand{pointer-events:auto;min-width:0}
+.brand h1{margin:0;font-family:var(--display);font-weight:400;font-size:clamp(22px,3vw,30px);letter-spacing:.01em;line-height:1.05;color:var(--text)}
+.brand p{margin:4px 0 0;font-family:var(--serif);font-style:italic;color:var(--muted);font-size:15px}
+.tools{pointer-events:auto;display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+.btn{display:inline-flex;align-items:center;gap:6px;height:36px;padding:0 12px;border-radius:18px;border:1px solid var(--line);background:rgba(31,25,18,.8);cursor:pointer;font-size:14px;font-weight:500;letter-spacing:.02em;transition:background .15s,border-color .15s}
+.btn:hover{background:rgba(60,48,34,.9);border-color:rgba(234,223,200,.3)}
+.btn:focus-visible,.scrub:focus-visible{outline:2px solid var(--weld);outline-offset:2px}
+.btn[aria-pressed="true"]{background:var(--weld);color:#1c150c;border-color:var(--weld)}
+.btn.icon{width:36px;padding:0;justify-content:center;font-size:18px}
+.btn svg{width:15px;height:15px}
+.dock{position:fixed;left:0;right:0;bottom:0;padding:34px 18px calc(env(safe-area-inset-bottom,0px) + 14px);background:linear-gradient(to top,rgba(12,9,6,.94) 55%,rgba(12,9,6,0));pointer-events:none}
+.dock > *{pointer-events:auto}
+.caption{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:6px 24px;align-items:end;max-width:1180px;margin:0 auto 12px}
+.meta{grid-column:1/-1;display:flex;gap:14px;flex-wrap:wrap;font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);font-variant-numeric:tabular-nums}
+.meta b{color:var(--weld);font-weight:700}
+.latin{margin:0;font-family:var(--display);font-weight:400;color:var(--weld);font-size:clamp(17px,2.1vw,23px);line-height:1.25;text-wrap:balance}
+.english{margin:4px 0 0;font-family:var(--serif);font-size:clamp(16px,1.7vw,19px);line-height:1.35;color:var(--text);text-wrap:balance}
+.note{margin:6px 0 0;font-size:15px;line-height:1.5;color:var(--muted);max-width:68ch}
+.nav{display:flex;gap:6px;align-self:center}
+.fade{transition:opacity .35s ease}
+.fade.out{opacity:0}
+.scrubwrap{max-width:1180px;margin:0 auto}
+.scrub{position:relative;height:46px;border-radius:4px;overflow:hidden;cursor:pointer;background:#2a2219;box-shadow:inset 0 0 0 1px var(--line);touch-action:none}
+.scrub canvas{position:absolute;inset:0;width:100%;height:100%;filter:saturate(.9) brightness(.8)}
+.win{position:absolute;top:0;bottom:0;border:2px solid var(--weld);border-radius:3px;box-shadow:0 0 0 999px rgba(10,8,5,.35);pointer-events:none}
+.ruler{position:relative;height:18px;margin-top:4px;font-size:11px;color:var(--muted);font-variant-numeric:tabular-nums;letter-spacing:.04em}
+.ruler span{position:absolute;top:0;transform:translateX(-50%);white-space:nowrap}
+.ruler span::before{content:"";position:absolute;left:50%;top:-4px;width:1px;height:4px;background:var(--muted)}
+.ruler span:first-child{transform:none}.ruler span:first-child::before{left:0}
+.ruler span:last-child{transform:translateX(-100%)}.ruler span:last-child::before{left:auto;right:0}
+.hint{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);padding:10px 16px;border-radius:20px;background:rgba(20,15,10,.8);border:1px solid var(--line);font-size:14px;color:var(--text);pointer-events:none;transition:opacity .6s;white-space:nowrap}
+.hint.gone{opacity:0}
+#loader{position:fixed;inset:0;z-index:5;display:grid;place-items:center;padding:16px;background:radial-gradient(ellipse at 50% 40%,rgba(40,30,20,.55),rgba(12,9,6,.94) 70%);-webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px);transition:opacity .9s ease .35s}
+#loader.done{opacity:0;pointer-events:none}
+.ticket{--linen:#e6d5ac;--ink:#28323f;display:flex;width:min(760px,100%);color:var(--ink);filter:drop-shadow(0 24px 40px rgba(0,0,0,.55));animation:drop 1.1s cubic-bezier(.2,.9,.25,1.15) both,float 6s ease-in-out 1.2s infinite;transform-origin:50% 0}
+@keyframes drop{from{opacity:0;transform:translateY(-80px) rotate(-7deg)}to{opacity:1;transform:translateY(0) rotate(-1.5deg)}}
+@keyframes float{0%,100%{transform:translateY(0) rotate(-1.5deg)}50%{transform:translateY(-6px) rotate(-.6deg)}}
+.tk-main,.tk-stub{position:relative;background-color:var(--linen)}
+.tk-main{flex:1;min-width:0;padding:26px 28px 22px;border-radius:10px 0 0 10px;background-image:repeating-linear-gradient(0deg,rgba(90,68,38,.06) 0 1px,transparent 1px 3px),repeating-linear-gradient(90deg,rgba(255,250,235,.12) 0 1px,transparent 1px 3px)}
+.tk-main::before{content:"";position:absolute;inset:9px;border:2px dashed #9b3e2b;border-radius:6px;pointer-events:none;opacity:.8}
+.tk-eyebrow{display:flex;justify-content:space-between;gap:12px;font-size:12px;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:#9b3e2b}
+.tk-main h2{margin:10px 0 6px;font-family:var(--display);font-weight:400;font-size:clamp(26px,4.2vw,38px);line-height:1.08;text-wrap:balance}
+.tk-sub{margin:0 0 14px;font-family:var(--serif);font-size:17px;line-height:1.4;max-width:44ch}
+#tkArt{display:block;width:100%;height:auto;max-width:420px;aspect-ratio:420/120;margin:2px 0 10px}
+.tk-meta{display:flex;gap:22px;flex-wrap:wrap;margin:0 0 14px}
+.tk-meta div{min-width:0}
+.tk-meta dt{font-size:10.5px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:#6d5a40}
+.tk-meta dd{margin:2px 0 0;font-family:var(--serif);font-size:16px;font-weight:500;font-variant-numeric:tabular-nums}
+.tk-main .bar{height:3px;background:rgba(40,50,63,.15);border-radius:2px;overflow:hidden;max-width:320px}
+.tk-main .bar i{display:block;height:100%;width:0;background:#9b3e2b;transition:width .15s}
+.tk-load{margin:6px 0 0;font-family:var(--serif);font-style:italic;font-size:14px;color:#6d5a40}
+.tk-stub{width:150px;flex:none;border:0;border-radius:0 10px 10px 0;cursor:pointer;display:grid;place-items:center;padding:18px 10px;font:inherit;color:var(--ink);transition:transform .7s cubic-bezier(.5,0,.8,.4),opacity .7s;background-image:repeating-linear-gradient(0deg,rgba(90,68,38,.06) 0 1px,transparent 1px 3px)}
+.tk-stub::before{content:"";position:absolute;left:-1px;top:10px;bottom:10px;border-left:3px dotted rgba(40,50,63,.45)}
+.tk-stub::after{content:"";position:absolute;inset:9px 9px 9px 12px;border:2px dashed #3e5b79;border-radius:6px;opacity:.7;pointer-events:none}
+.notch{position:absolute;right:-11px;width:22px;height:22px;border-radius:50%;background:#15110d;z-index:2}
+.notch.t{top:-11px}.notch.b{bottom:-11px}
+.stub-in{display:flex;flex-direction:column;align-items:center;gap:8px;text-align:center}
+.stub-no{font-family:var(--display);font-size:30px;line-height:1;color:#9b3e2b}
+.stub-lbl{font-size:12px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;line-height:1.3}
+.stub-cta{margin-top:4px;padding:6px 12px;border-radius:16px;background:#28323f;color:#f0e4c8;font-size:13px;font-weight:700;letter-spacing:.04em;transition:background .2s,transform .2s}
+.tk-stub:not(:disabled):hover .stub-cta{background:#9b3e2b;transform:scale(1.05)}
+.tk-stub:disabled{cursor:progress}.tk-stub:disabled .stub-cta{opacity:.45}
+.tk-stub:focus-visible{outline:3px solid var(--weld);outline-offset:3px}
+.ticket.torn{animation:none;transform:rotate(-1.5deg)}
+.ticket.torn .tk-stub{transform:translate(60px,140px) rotate(28deg);opacity:0}
+.ticket.torn .tk-main{transition:transform .9s cubic-bezier(.6,0,.9,.5) .35s,opacity .9s .35s;transform:translateY(-30px) scale(.96);opacity:0}
+.thread{position:fixed;width:2px;border-radius:1px;pointer-events:none;z-index:6;animation:fall 1.6s cubic-bezier(.3,.6,.5,1) forwards}
+@keyframes fall{to{transform:translate(var(--dx),var(--dy)) rotate(var(--r));opacity:0}}
+@media (max-width:600px){.ticket{flex-direction:column}.tk-main{border-radius:10px 10px 0 0;padding:22px 20px 18px}.tk-stub{width:auto;border-radius:0 0 10px 10px;padding:16px}.tk-stub::before{left:10px;right:10px;top:-1px;bottom:auto;border-left:0;border-top:3px dotted rgba(40,50,63,.45)}.stub-in{flex-direction:row;gap:12px}.notch.t{top:auto;bottom:-11px;left:-11px;right:auto}.notch.b{bottom:-11px;right:-11px}.ticket.torn .tk-stub{transform:translate(20px,160px) rotate(10deg)}}
+.sheet{position:fixed;inset:0;z-index:6;display:grid;place-items:center;background:rgba(8,6,4,.62);padding:16px}
+.sheet .card{width:min(620px,100%);max-height:calc(100% - 32px);overflow:auto;background:var(--panel-solid);border:1px solid var(--line);border-radius:10px;padding:24px 26px 20px}
+.card h2{margin:0 0 4px;font-family:var(--display);font-weight:400;font-size:26px}
+.card .sub{margin:0 0 16px;font-family:var(--serif);font-style:italic;color:var(--muted)}
+.card h3{margin:18px 0 6px;font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--weld)}
+.card p,.card li{font-size:15.5px;line-height:1.55;color:var(--text)}
+.card p{margin:0 0 10px}
+.card ul{margin:0 0 10px;padding-left:18px}
+.card a{color:var(--weld)}
+.card kbd{font-family:var(--sans);font-size:12px;padding:1px 6px;border-radius:4px;border:1px solid var(--line);background:#2a2219}
+.card .row{display:flex;justify-content:flex-end;margin-top:14px}
+.fallback{position:fixed;inset:90px 0 200px;overflow-x:auto;display:flex;gap:0;align-items:center;padding:0 16px}
+.fallback canvas,.fallback img{height:min(46vh,380px);width:auto}
+
+/* spot-it pins */
+#pins{position:fixed;inset:0;pointer-events:none;z-index:2}
+.pin{position:absolute;left:0;top:0;width:34px;height:34px;margin:-17px 0 0 -17px;border-radius:50%;border:2px solid #fff4dc;background:rgba(155,62,43,.9);color:#fff4dc;font:700 15px/30px var(--sans);text-align:center;cursor:pointer;pointer-events:auto;box-shadow:0 2px 10px rgba(0,0,0,.45);transition:background .2s;will-change:transform}
+.pin::after{content:"";position:absolute;inset:-7px;border-radius:50%;border:2px solid rgba(255,230,190,.75);animation:ping 2.2s ease-out infinite}
+.pin.found{background:rgba(40,50,63,.88);font-size:14px}.pin.found::after{display:none}
+.pin:hover{background:#d4a748;color:#1c150c}
+.pin:focus-visible{outline:3px solid var(--weld);outline-offset:3px}
+@keyframes ping{0%{transform:scale(.8);opacity:1}80%,100%{transform:scale(1.6);opacity:0}}
+.pop{position:fixed;left:50%;top:calc(env(safe-area-inset-top,0px) + 78px);transform:translateX(-50%);z-index:4;width:min(440px,calc(100% - 32px));background:var(--panel-solid);border:1px solid var(--line);border-radius:10px;padding:14px 16px 12px;box-shadow:0 14px 34px rgba(0,0,0,.5)}
+.pop .eyebrow{font-size:11px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--weld)}
+.pop h3{margin:4px 0 6px;font-family:var(--serif);font-size:20px;font-weight:500}
+.pop p{margin:0;font-size:15px;line-height:1.5}
+.pop .row{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:10px;font-size:13px;color:var(--muted)}
+/* side panel: map + did you know */
+.side{position:fixed;right:18px;top:calc(env(safe-area-inset-top,0px) + 72px);width:250px;z-index:2;display:grid;gap:8px}
+.side .panel{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:10px 12px;-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
+.plabel{font-size:10.5px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--weld);display:flex;justify-content:space-between;gap:8px}
+.plabel span{color:var(--muted);letter-spacing:.06em;text-transform:none;font-weight:500}
+#map{display:block;width:100%;height:auto;margin-top:6px;border-radius:4px}
+#fact{margin:5px 0 0;font-family:var(--serif);font-size:15px;line-height:1.42}
+.tally{display:flex;gap:12px;flex-wrap:wrap;margin-top:8px;padding-top:7px;border-top:1px solid var(--line);font-variant-numeric:tabular-nums;font-size:13px;color:var(--muted)}
+.tally b{color:var(--text);font-size:16px;font-weight:700;margin-right:3px}
+.btn .count{font-variant-numeric:tabular-nums;color:var(--weld);font-weight:700}
+.exitbtn{position:fixed;left:50%;transform:translateX(-50%);top:calc(env(safe-area-inset-top,0px) + 70px);z-index:3;background:var(--weld);color:#1c150c;border-color:var(--weld);height:42px;padding:0 16px;font-size:15px;box-shadow:0 8px 20px rgba(0,0,0,.45)}
+.exitbtn:hover{background:#e4b95a}
+.hunt{list-style:none;margin:6px 0 0;padding:0;display:grid;gap:6px}
+.hunt li{display:grid;grid-template-columns:26px minmax(0,1fr) auto;gap:10px;align-items:center;padding:8px 10px;border:1px solid var(--line);border-radius:8px}
+.hunt .tick{width:24px;height:24px;border-radius:50%;border:2px solid var(--muted);display:grid;place-items:center;font-size:13px;font-weight:700}
+.hunt li.done .tick{background:var(--weld);border-color:var(--weld);color:#1c150c}
+.hunt .t{font-weight:700;font-size:15px}.hunt .h{font-size:13.5px;color:var(--muted);line-height:1.35}
+.hunt .btn{height:30px;font-size:13px;padding:0 10px}
+.timeline{list-style:none;margin:8px 0 6px 6px;padding:0 0 0 18px;border-left:2px dashed rgba(212,167,72,.45);display:grid;gap:12px}
+.timeline li{position:relative;font-size:15px;line-height:1.5}
+.timeline li::before{content:"";position:absolute;left:-25px;top:7px;width:10px;height:10px;border-radius:50%;background:var(--weld)}
+.timeline .yr{font-family:var(--display);color:var(--weld);font-size:18px;margin-right:6px}
+.souvenir{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin:10px 0 4px}
+.souvenir div{border:1px solid var(--line);border-radius:8px;padding:8px 10px}
+.souvenir b{display:block;font-family:var(--display);font-size:22px;color:var(--weld);font-weight:400;font-variant-numeric:tabular-nums}
+.souvenir span{font-size:12px;color:var(--muted);letter-spacing:.04em}
+.sheet .card.wide{width:min(680px,100%)}
+.side{display:none}
+.side.open{display:grid}
+.caption{grid-template-columns:minmax(0,1fr) minmax(0,300px) auto}
+.dyk{align-self:end;border-left:2px solid rgba(212,167,72,.5);padding-left:14px}
+.dyk p{margin:4px 0 0;font-family:var(--serif);font-size:15px;line-height:1.42;color:var(--text)}
+.meta .tl{margin-left:auto}
+.meta .tl b{color:var(--text)}
+@media (min-width:901px){.side .factpanel{display:none}}
+@media (max-width:900px){.dyk{display:none}.caption{grid-template-columns:minmax(0,1fr) auto}}
+@media (max-width:640px){
+  .side.open{left:16px;right:16px;width:auto;top:calc(env(safe-area-inset-top,0px) + 108px);grid-template-columns:120px minmax(0,1fr);align-items:start}
+  .side .panel{padding:8px 10px}
+  #fact{font-size:13.5px}
+  .souvenir{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .hunt li{grid-template-columns:26px minmax(0,1fr)}.hunt li .btn{grid-column:2;justify-self:start}
+
+  .top{padding-left:16px;padding-right:16px}
+  .brand p{display:none}
+  .btn .lbl{display:none}
+  .btn{padding:0 10px}
+  .dock{padding-left:16px;padding-right:16px}
+  .caption{grid-template-columns:1fr}
+  .nav{justify-self:start}
+  .note{display:none}
+}
+@media (prefers-reduced-motion:reduce){.fade,#loader,.hint,.tk-stub,.ticket.torn .tk-main{transition:none!important}.ticket{animation:none;transform:rotate(-1.5deg)}}
+</style>
+
+</head>
+<body>
+<div id="stage" aria-label="3D view of the Bayeux Tapestry. Drag or use arrow keys to move along it."></div>
+
+<header class="top">
+  <div class="brand">
+    <h1>The Bayeux Tapestry</h1>
+    <p>A walk along all 68 metres of 1066</p>
+  </div>
+  <div class="tools">
+    <button class="btn" id="walk" aria-pressed="false" title="Walk along the tapestry (Space)"><svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path id="walkIcon" d="M4 2.5v11l9-5.5z"/></svg><span class="lbl">Walk</span></button>
+    <button class="btn" id="angle" aria-pressed="false" title="Toggle a gallery angle (A)"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M2 12 L8 4 L14 12"/><path d="M2 12h12"/></svg><span class="lbl">Angle</span></button>
+    <button class="btn" id="huntBtn" title="Spot-it hunt"><span class="lbl">Spot it</span> <span class="count" id="huntCount">0/10</span></button>
+    <button class="btn" id="sideBtn" aria-pressed="false" title="Map, facts and tally"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M1.5 3.5l4-1.5 5 2 4-1.5v10l-4 1.5-5-2-4 1.5z"/><path d="M5.5 2v10M10.5 4v10"/></svg><span class="lbl">Map</span></button>
+    <button class="btn icon" id="zoomOut" title="Step back (−)" aria-label="Step back">−</button>
+    <button class="btn icon" id="zoomIn" title="Look closer (+)" aria-label="Look closer">+</button>
+    <button class="btn" id="info" title="About this tapestry"><span class="lbl">About</span><span aria-hidden="true" style="font-family:var(--serif);font-style:italic;font-weight:700">i</span></button>
+  </div>
+</header>
+
+<div id="pins" aria-label="Details to spot"></div>
+<div class="pop" id="pop" hidden role="dialog" aria-labelledby="popTitle"><div class="eyebrow" id="popEye">Spotted</div><h3 id="popTitle"></h3><p id="popText"></p><div class="row"><span id="popCount"></span><button class="btn" id="popClose">Keep walking</button></div></div>
+<aside class="side" id="side">
+  <div class="panel"><div class="plabel">1066 <span id="mapPlace">Bosham</span></div><svg id="map" viewBox="0 0 250 190" role="img" aria-label="Sketch map of southern England and northern France showing where the story is"></svg></div>
+  <div class="panel factpanel"><div class="plabel">Did you know?</div><p id="fact2"></p></div>
+</aside>
+<button class="btn exitbtn" id="exitBtn" hidden>Exit through the gift shop →</button>
+<div class="hint" id="hint">Drag, scroll or use ← → to walk the tapestry</div>
+
+<section class="dock" aria-live="polite">
+  <div class="caption fade" id="caption">
+    <div class="meta"><span>Section <b id="cNum">1</b> of <b id="cTot">30</b></span><span id="cTrad">Traditional scene 1</span><span id="cMetre">0.0 m from the start</span><span class="tl" title="Approximate running count of what you have walked past">Passed <b id="tP">0</b> people · <b id="tH">0</b> horses · <b id="tS">0</b> ships</span></div>
+    <div>
+      <p class="latin" id="cLatin"></p>
+      <p class="english" id="cEnglish"></p>
+      <p class="note" id="cNote"></p>
+    </div>
+    <div class="dyk"><div class="plabel">Did you know?</div><p id="fact"></p></div>
+    <div class="nav">
+      <button class="btn icon" id="prev" aria-label="Previous section" title="Previous section ( [ )">‹</button>
+      <button class="btn icon" id="next" aria-label="Next section" title="Next section ( ] )">›</button>
+    </div>
+  </div>
+  <div class="scrubwrap">
+    <div class="scrub" id="scrub" tabindex="0" role="slider" aria-label="Position along the tapestry" aria-valuemin="0" aria-valuemax="68" aria-valuenow="0">
+      <canvas id="strip"></canvas>
+      <div class="win" id="win"></div>
+    </div>
+    <div class="ruler" id="ruler"></div>
+  </div>
+</section>
+
+<div id="loader" role="dialog" aria-modal="true" aria-labelledby="tkTitle">
+  <div class="ticket" id="ticket">
+    <div class="tk-main">
+      <div class="tk-eyebrow"><span>Admit one</span><span>★ Winner ★</span></div>
+      <h2 id="tkTitle">You've won a ticket to the Bayeux Tapestry</h2>
+      <p class="tk-sub">Nearly seventy metres of 1066 in wool on linen. No queue, no timed slot, and nobody nudging you along.</p>
+      <canvas id="tkArt" width="840" height="240" aria-hidden="true"></canvas>
+      <dl class="tk-meta">
+        <div><dt>Ticket no.</dt><dd>1066</dd></div>
+        <div><dt>Standing</dt><dd>Anywhere along the wall</dd></div>
+        <div><dt>Running time</dt><dd>As long as you like</dd></div>
+      </dl>
+      <div class="bar"><i id="loadBar"></i></div>
+      <p class="tk-load" id="loadMsg">Laying the linen…</p>
+    </div>
+    <button class="tk-stub" id="tear" disabled aria-describedby="loadMsg"><span class="notch t" aria-hidden="true"></span><span class="notch b" aria-hidden="true"></span>
+      <span class="stub-in"><span class="stub-no">MLXVI</span><span class="stub-lbl">Gallery<br>entrance</span><span class="stub-cta" id="tearCta">Stitching…</span></span>
+    </button>
+  </div>
+</div>
+
+<div class="sheet" id="huntSheet" hidden>
+  <div class="card wide" role="dialog" aria-modal="true" aria-labelledby="huntTitle">
+    <h2 id="huntTitle">Spot it</h2>
+    <p class="sub">Ten details hidden along the cloth. Walk until a red pin appears, then tap it.</p>
+    <ol class="hunt" id="huntList"></ol>
+    <div class="row"><button class="btn" id="closeHunt">Back to the tapestry</button></div>
+  </div>
+</div>
+<div class="sheet" id="shopSheet" hidden>
+  <div class="card wide" role="dialog" aria-modal="true" aria-labelledby="shopTitle">
+    <h2 id="shopTitle">The gift shop</h2>
+    <p class="sub">You made it to the end, which is more than the tapestry did: its last metres are lost.</p>
+    <div class="souvenir" id="souvenir"></div>
+    <h3>How it survived 950 years</h3>
+    <ul class="timeline">
+      <li><span class="yr">1476</span>The first written record. An inventory of Bayeux Cathedral lists a long embroidered hanging of the Conquest, put up around the nave each summer for the feast of the relics.</li>
+      <li><span class="yr">1729</span>Scholars in Paris publish drawings of part of it, and the rest of Europe starts to take notice.</li>
+      <li><span class="yr">1792</span>During the Revolution it is commandeered to cover a military wagon. A local lawyer, Lambert Léonard-Leforestier, swaps in other cloth and hides it.</li>
+      <li><span class="yr">1803</span>Napoleon has it shown in Paris to rally support for his own planned invasion of England. The invasion never happens, and the tapestry goes home.</li>
+      <li><span class="yr">1886</span>Thirty-five women of the Leek Embroidery Society finish a full-size copy for England. They discreetly clothe the few naked figures. It hangs today in Reading.</li>
+      <li><span class="yr">1944</span>Moved to the Louvre during the war. As Paris is liberated, the SS try to take it to Germany. It stays.</li>
+      <li><span class="yr">2026</span>It crosses the Channel the other way: on loan to the British Museum, back in England for the first time since it was made.</li>
+    </ul>
+    <div class="row" style="gap:8px"><button class="btn" id="againBtn">Walk it again</button><button class="btn" id="closeShop">Back to the tapestry</button></div>
+  </div>
+</div>
+<div class="sheet" id="sheet" hidden>
+  <div class="card" role="dialog" aria-modal="true" aria-labelledby="aboutTitle">
+    <h2 id="aboutTitle">About the tapestry</h2>
+    <p class="sub">An embroidery, strictly speaking: coloured wool stitched onto linen.</p>
+    <p>The Bayeux Tapestry runs almost 70 metres and about half a metre high. It tells the story from Harold Godwinson's journey to Normandy through William's invasion and the Battle of Hastings in 1066, ending with the English in flight. It was probably commissioned by a Norman patron, stitched by English embroiderers, and drawn from manuscript models from Canterbury, sometime around 1072–77.</p>
+    <h3>At the British Museum</h3>
+    <p>On loan from France, it is back in England for the first time since it was made: Room 30, 10 September 2026 to 11 July 2027. Tickets through December are sold out; January to March 2027 tickets go on sale 21 October 2026. <a href="https://www.britishmuseum.org/exhibitions/bayeux-tapestry" target="_blank" rel="noopener">Exhibition page</a></p>
+    <h3>About this viewer</h3>
+    <p>This is the real tapestry, hung at true scale: the 2017 high-resolution photography by the Université de Caen Normandie, CNRS and ENSICAEN, published on <a href="https://commons.wikimedia.org/wiki/Category:2017_high-resolution_photography_of_the_Bayeux_Tapestry" target="_blank" rel="noopener">Wikimedia Commons</a> as public domain. The 56 scene photographs were joined into one continuous strip and cropped to the cloth, at about 10 pixels per centimetre. The captions group the traditional 58 scenes into 30 sections; the Latin is given with abbreviations expanded and spelling lightly regularised. The little ticket illustration is an original drawing in the tapestry's style.</p>
+    <h3>The extras</h3>
+    <p>The running count of people, horses and ships is an estimate spread across the scenes and scaled to the commonly cited totals of about 626 people, 190 horses and 41 ships. Published counts vary. The map is a rough sketch for orientation.</p>
+    <h3>Getting around</h3>
+    <ul>
+      <li>Drag, scroll, or <kbd>←</kbd> <kbd>→</kbd> to walk. <kbd>[</kbd> <kbd>]</kbd> jump a section.</li>
+      <li>Pinch, <kbd>+</kbd> <kbd>−</kbd> or ctrl-scroll to look closer. Drag up and down to tilt.</li>
+      <li><kbd>Space</kbd> walks on its own; <kbd>A</kbd> swings to a gallery angle.</li>
+    </ul>
+    <div class="row"><button class="btn" id="closeInfo">Back to the tapestry</button></div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+(()=>{
+/* ================= Scene data ================= */
+const SCENES=[
+ {t:"1",la:"EDWARDUS REX · UBI HAROLD DUX ANGLORUM ET SUI MILITES EQUITANT AD BOSHAM",en:"King Edward. Where Harold, earl of the English, and his knights ride to Bosham.",no:"The old king sends Harold on a mission, probably to Normandy. Harold sets out with a hawk on his wrist and hounds running ahead: an aristocrat at leisure."},
+ {t:"3–4",la:"ECCLESIA · HIC HAROLD MARE NAVIGAVIT",en:"A church. Here Harold sailed the sea.",no:"Harold prays at Bosham church, then his men wade out to the ships with their tunics hitched up, carrying the hounds."},
+ {t:"5",la:"ET VELIS VENTO PLENIS VENIT IN TERRAM WIDONIS COMITIS",en:"And with sails full of wind he came to the land of Count Guy.",no:"The ships are the same clinker-built vessels the Normans will later use, with striped sails and a beast's head at the prow."},
+ {t:"7–8",la:"HIC APPREHENDIT WIDO HAROLDUM ET DUXIT EUM AD BELREM",en:"Here Guy seized Harold and led him to Beaurain.",no:"Harold lands in Ponthieu and is taken by Count Guy's men. Captives of rank were valuable, and Guy intends to profit."},
+ {t:"9–10",la:"UBI HAROLD ET WIDO PARABOLANT",en:"Where Harold and Guy talk together.",no:"Guy sits enthroned with his sword; Harold stands before him. Outside, a figure lurks behind a column, perhaps an informer."},
+ {t:"11–12",la:"UBI NUNTII WILLELMI DUCIS VENERUNT AD WIDONEM",en:"Where Duke William's messengers came to Guy.",no:"Word reaches William, who demands Harold's release. His envoys gallop with their hair flying, the Normans shaven at the back of the head."},
+ {t:"14",la:"HIC DUX WILLELM CUM HAROLDO VENIT AD PALATIUM SUUM",en:"Here Duke William came with Harold to his palace.",no:"William receives Harold at his hall. From here Harold is treated as a guest, and as a companion in arms."},
+ {t:"15",la:"UBI UNUS CLERICUS ET ÆLFGYVA",en:"Where a clerk and Ælfgyva.",no:"One of the tapestry's great puzzles: the sentence has no verb, and nobody is sure who Ælfgyva was. She is one of only three women in the main story."},
+ {t:"16",la:"HIC WILLEM DUX ET EXERCITUS EIUS VENERUNT AD MONTEM MICHAELIS",en:"Here Duke William and his army came to Mont-Saint-Michel.",no:"The campaign against Conan of Brittany begins. The abbey sits on its rock above the tidal sands."},
+ {t:"17",la:"ET HIC TRANSIERUNT FLUMEN COSNONIS · HIC HAROLD DUX TRAHEBAT EOS DE ARENA",en:"And here they crossed the river Couesnon. Here Earl Harold dragged them from the sand.",no:"Soldiers hold their shields above their heads to keep them dry. Harold carries one man on his back and hauls another out by the hand: the story shows him as a hero."},
+ {t:"18",la:"ET VENERUNT AD DOL ET CONAN FUGA VERTIT · REDNES",en:"And they came to Dol, and Conan turned to flight. Rennes.",no:"Conan escapes from the castle at Dol by sliding down a rope. The castles are mottes: timber towers on earth mounds, drawn in bands of colour."},
+ {t:"19–20",la:"HIC MILITES WILLELMI DUCIS PUGNANT CONTRA DINANTES ET CUNAN CLAVES PORREXIT",en:"Here Duke William's knights fight against the men of Dinan, and Conan handed over the keys.",no:"Two men set the palisade alight with torches. Conan surrenders by passing the castle keys out on the tip of a lance."},
+ {t:"21",la:"HIC WILLELM DEDIT HAROLDO ARMA",en:"Here William gave Harold arms.",no:"William places a helmet on Harold's head, making him his man. To Norman eyes, a bond had been formed."},
+ {t:"22–23",la:"HIC WILLELM VENIT BAGIAS · UBI HAROLD SACRAMENTUM FECIT WILLELMO DUCI",en:"Here William came to Bayeux, where Harold made an oath to Duke William.",no:"The hinge of the whole story. Harold swears with his hands on two reliquaries. What he promised, and whether he meant it, is the Norman case for invasion."},
+ {t:"24–25",la:"HIC HAROLD DUX REVERSUS EST AD ANGLICAM TERRAM",en:"Here Earl Harold returned to the English land.",no:"Harold comes home to Edward. His head is bowed and his posture humble: something has gone wrong, and a lookout watches from a balcony."},
+ {t:"26",la:"HIC PORTATUR CORPUS EADWARDI REGIS AD ECCLESIAM SANCTI PETRI APOSTOLI",en:"Here King Edward's body is carried to the church of Saint Peter the Apostle.",no:"Edward's bier goes to his new abbey at Westminster, so new that a workman is still fixing the weathercock on the roof. Two boys ring bells beneath the bier."},
+ {t:"27–28",la:"HIC EADWARDUS REX IN LECTO ALLOQUITUR FIDELES · ET HIC DEFUNCTUS EST",en:"Here King Edward in bed speaks to his faithful men. And here he died.",no:"The tapestry tells this out of order: the funeral first, then the deathbed. Above, the dying king speaks; below, his body is wrapped for burial."},
+ {t:"29–31",la:"HIC DEDERUNT HAROLDO CORONAM REGIS · HIC RESIDET HAROLD REX ANGLORUM",en:"Here they gave Harold the king's crown. Here sits Harold, king of the English.",no:"Harold is crowned the day after the funeral, holding orb and sceptre. Beside him stands Archbishop Stigand, a figure the Normans considered improperly appointed."},
+ {t:"32–33",la:"ISTI MIRANT STELLAM",en:"These men marvel at the star.",no:"Halley's Comet appeared in April 1066 and was read as an omen. In the border below, ghostly ships without colour hint at the invasion to come."},
+ {t:"35–36",la:"HIC WILLELM DUX IUSSIT NAVES AEDIFICARE",en:"Here Duke William ordered ships to be built.",no:"A carpentry scene with real tools: axes for felling, adzes for shaping planks, and hulls taking shape plank by plank."},
+ {t:"37",la:"HIC TRAHUNT NAVES AD MARE · ISTI PORTANT ARMAS AD NAVES",en:"Here they drag the ships to the sea. These men carry arms to the ships.",no:"Mail shirts were so heavy they are carried on poles between two men. A cart brings wine and a rack of spears."},
+ {t:"38–39",la:"HIC WILLELM DUX IN MAGNO NAVIGIO MARE TRANSIVIT ET VENIT AD PEVENESAE",en:"Here Duke William crossed the sea in a great ship and came to Pevensey.",no:"The fleet crosses at night with horses packed aboard. William's own ship carries a lantern at the masthead so the others can follow."},
+ {t:"43",la:"ET HIC EPISCOPUS CIBUM ET POTUM BENEDICIT",en:"And here the bishop blesses the food and drink.",no:"Cooks roast meat on spits and serve it on skewers. At a curved table, Bishop Odo, William's half-brother, blesses the meal."},
+ {t:"45",la:"ISTE IUSSIT UT FODERETUR CASTELLUM AT HESTENGA CEASTRA",en:"This man ordered a castle to be dug at Hastings.",no:"Men with spades throw up a motte. The Latin slips into English at the end: 'ceastra' is an Old English word for a fortified place."},
+ {t:"47",la:"HIC DOMUS INCENDITUR",en:"Here a house is set on fire.",no:"A rare glimpse of civilians in war: a woman leads her child out of a burning house as soldiers torch it."},
+ {t:"49–50",la:"HIC WILLELM DUX INTERROGAT VITAL SI VIDISSET EXERCITUM HAROLDI",en:"Here Duke William asks Vital whether he had seen Harold's army.",no:"On the morning of 14 October 1066 William's scouts report from the hills. An English lookout watches from the other side."},
+ {t:"51–52",la:"HIC FRANCI PUGNANT · HIC CECIDERUNT LEWINE ET GYRD FRATRES HAROLDI REGIS",en:"Here the French fight. Here fell Leofwine and Gyrth, King Harold's brothers.",no:"Norman cavalry charge the English shield wall. The English fight on foot, some swinging two-handed axes. In the border, the fallen pile up."},
+ {t:"54–55",la:"HIC ODO EPISCOPUS BACULUM TENENS CONFORTAT PUEROS · HIC EST WILLELM DUX",en:"Here Bishop Odo, holding a club, rallies the young men. Here is Duke William.",no:"A rumour spreads that William is dead. He pushes up his helmet to show his face, and Odo rallies the wavering knights. Archers fill the lower border."},
+ {t:"57",la:"HIC HAROLD REX INTERFECTUS EST",en:"Here King Harold was killed.",no:"The most debated image in the tapestry: is Harold the man pulling at an arrow near his eye, the man cut down by a horseman, or both? The stitching itself was altered in later restorations."},
+ {t:"58",la:"ET FUGA VERTERUNT ANGLI",en:"And the English turned to flight.",no:"The last surviving section. The true ending is lost, and much of this final stretch is later restoration: look for the change in colour and texture near the end."}
+];
+
+/* ================= Embroidery drawing ================= */
+const W=1792,H=384,BT=58,BB=326,G=312;
+const C={ink:'#28323f',blue:'#3e5b79',sky:'#7c98a6',red:'#9b3e2b',terra:'#b66a4a',ochre:'#c29440',gold:'#d6b45c',green:'#56693f',sage:'#8c9a66',plum:'#5b4250',buff:'#e2d4ae'};
+let X,R;
+function mulberry(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+function shade(hex,a){if(typeof hex!=='string'||hex[0]!=='#')return hex;const n=parseInt(hex.slice(1),16);let r=n>>16,g=n>>8&255,b=n&255;const t=a<0?0:255,p=Math.min(1,Math.abs(a));r=Math.round(r+(t-r)*p);g=Math.round(g+(t-g)*p);b=Math.round(b+(t-b)*p);return`rgb(${r},${g},${b})`}
+function P(pts,close=true){const p=new Path2D();p.moveTo(pts[0],pts[1]);for(let i=2;i<pts.length;i+=2)p.lineTo(pts[i],pts[i+1]);if(close)p.closePath();return p}
+function ell(cx,cy,rx,ry,rot=0){const p=new Path2D();p.ellipse(cx,cy,rx,ry,rot,0,Math.PI*2);return p}
+function qpts(x0,y0,cx,cy,x1,y1,n=12){const o=[];for(let i=0;i<=n;i++){const t=i/n,u=1-t;o.push(u*u*x0+2*u*t*cx+t*t*x1,u*u*y0+2*u*t*cy+t*t*y1)}return o}
+function at(x,y,s,d,fn,rot=0){X.save();X.translate(x,y);if(rot)X.rotate(rot);X.scale(s*d,s);fn();X.restore()}
+function laid(p,col,bb,ang=.9){X.save();X.clip(p);X.fillStyle=col;X.fill(p);const[x,y,w,h]=bb,cx=x+w/2,cy=y+h/2,Rr=Math.hypot(w,h)/2+4;X.translate(cx,cy);X.rotate(ang);X.lineWidth=1.3;X.globalAlpha=.55;for(let t=-Rr;t<Rr;t+=2.6){X.strokeStyle=shade(col,(R()-.5)*.28);X.beginPath();X.moveTo(-Rr,t);X.lineTo(Rr,t);X.stroke()}X.globalAlpha=.32;X.strokeStyle=shade(col,-.4);X.lineWidth=.9;for(let t=-Rr;t<Rr;t+=11){X.beginPath();X.moveTo(t,-Rr);X.lineTo(t,Rr);X.stroke()}X.restore()}
+function edge(p,w=2.3,col=C.ink){X.save();X.lineJoin='round';X.lineCap='round';X.strokeStyle=col;X.lineWidth=w;X.setLineDash([5.5,1.4]);X.stroke(p);X.globalAlpha=.45;X.strokeStyle=shade(col,.35);X.lineWidth=w*.45;X.setLineDash([2.5,4.4]);X.lineDashOffset=1.5;X.stroke(p);X.restore()}
+function sh(p,col,bb,ang,w){laid(p,col,bb,ang);edge(p,w)}
+function limb(pts,col,w=6){const p=P(pts,false);X.save();X.lineCap='round';X.lineJoin='round';X.strokeStyle=C.ink;X.lineWidth=w+3;X.stroke(p);X.strokeStyle=col;X.lineWidth=w;X.stroke(p);X.globalAlpha=.4;X.strokeStyle=shade(col,.3);X.lineWidth=w*.35;X.setLineDash([3,3]);X.stroke(p);X.restore()}
+function line(pts,col=C.ink,w=2.4){const p=P(pts,false);X.save();X.lineCap='round';X.lineJoin='round';X.strokeStyle=col;X.lineWidth=w;X.setLineDash([5,1.4]);X.stroke(p);X.restore()}
+function dot(x,y,r,col){X.fillStyle=col;X.beginPath();X.arc(x,y,r,0,7);X.fill()}
+
+function kite(x,y,col,col2,sc=1){at(x,y,sc,1,()=>{const p=P([0,-30,12,-34,22,-28,20,4,12,30,4,4]);laid(p,col,[0,-36,24,68],0);X.save();X.clip(p);X.fillStyle=col2;X.fillRect(9,-40,6,80);X.fillRect(-4,-14,30,5);X.restore();edge(p,2);dot(12,-12,2.4,C.ink)})}
+
+function man(x,y,o={}){const s=o.s||1.28,d=o.d||1;at(x,y,s,d,()=>{
+ const tun=o.t||C.green,hose=o.h||C.red,arm=o.a||tun,pose=o.pose||'stand';
+ if(o.seat&&o.throne){const th=P([-18,-54,22,-54,24,-2,-16,-2]);sh(th,o.throne===true?C.ochre:o.throne,[-20,-56,46,56],1.2);limb([-18,-54,-20,-72],C.ochre,4);dot(-20,-76,4,C.red)}
+ if(!o.noBack){const back=o.back||[-6,-88,-12,-70,-12,-56];limb(back,shade(arm,-.18),5)}
+ if(o.seat){limb([-2,-50,16,-50,18,-6],shade(hose,-.2),6);limb([2,-48,22,-46,28,-6],hose,6);limb([18,-6,26,-4],C.ink,4);limb([28,-6,36,-4],C.ink,4)}
+ else if(o.ride){limb([0,-50,10,-30,6,-6],hose,6);limb([6,-6,14,-4],C.ink,4)}
+ else if(o.gown){}
+ else{const st=o.walk;limb(st?[-3,-50,-9,-26,-17,-5]:[-3,-50,-5,-26,-7,-5],shade(hose,-.22),6);limb(st?[3,-50,9,-26,15,-5]:[3,-50,5,-26,8,-5],hose,6);limb(st?[-17,-5,-9,-3]:[-7,-5,1,-3],C.ink,4);limb(st?[15,-5,23,-3]:[8,-5,16,-3],C.ink,4)}
+ let tp;
+ if(o.mail)tp=P([-11,-94,11,-94,16,-66,19,-34,8,-34,0,-46,-8,-34,-19,-34,-16,-66]);
+ else if(o.gown)tp=P([-11,-94,11,-94,17,-44,24,-3,-24,-3,-17,-44]);
+ else tp=P([-11,-94,11,-94,19,-52,0,-46,-19,-52]);
+ if(o.mail){laid(tp,C.blue,[-20,-96,40,64],0);X.save();X.clip(tp);X.strokeStyle='rgba(225,215,190,.55)';X.lineWidth=.9;for(let yy=-94;yy<-30;yy+=5)for(let xx=-20+(yy%2?2.5:0);xx<20;xx+=5){X.beginPath();X.arc(xx,yy,1.6,0,7);X.stroke()}X.restore();edge(tp)}
+ else sh(tp,tun,[-26,-96,52,96],.8);
+ if(o.cloak){const cp=P([-11,-93,-2,-95,-22,-48,-30,-44]);sh(cp,o.cloak,[-32,-96,32,54],-.5)}
+ if(!o.mail&&!o.gown)line([-14,-70,14,-70],shade(tun,-.45),2);
+ if(o.gown&&o.chasuble){const ch=P([-12,-92,12,-92,20,-40,0,-30,-20,-40]);sh(ch,o.chasuble,[-22,-94,44,66],0)}
+ // head
+ const hp=ell(0,-106,9.5,10.5);X.fillStyle=C.buff;X.fill(hp);edge(hp,2);dot(4.5,-108,1.4,C.ink);
+ if(o.eng)line([3,-100,8,-99,11,-96],C.ink,1.7);
+ if(o.helm){const hm=P([-11,-103,0,-127,11,-103]);sh(hm,o.helm===true?C.ochre:o.helm,[-12,-128,24,26],0);line([10,-104,10,-96],C.ink,2.4)}
+ else if(o.crown){const cr=P([-10,-111,-10,-123,-5,-116,0,-127,5,-116,10,-123,10,-111]);sh(cr,C.gold,[-11,-128,22,18],0,1.8)}
+ else if(o.hood){const hd=new Path2D();hd.moveTo(-13,-96);hd.quadraticCurveTo(-16,-124,0,-120);hd.quadraticCurveTo(15,-120,12,-100);hd.lineTo(9,-112);hd.quadraticCurveTo(0,-118,-9,-110);hd.closePath();sh(hd,o.hood,[-16,-124,30,30],.3,1.8)}
+ else if(o.tonsure){line(qpts(-9,-110,0,-122,9,-110,6),C.plum,3)}
+ else{const hr=new Path2D();hr.ellipse(-1,-110,10,7,0,Math.PI,2*Math.PI);hr.closePath();sh(hr,o.hair||(o.eng?C.ochre:C.plum),[-12,-118,24,10],0,1.6)}
+ // front arm
+ const arms={stand:[8,-88,14,-72,17,-58],point:[8,-90,20,-94,31,-98],raise:[8,-90,14,-108,17,-126],hold:[8,-88,20,-82,31,-80],spear:[8,-88,17,-98,21,-110],strike:[8,-90,0,-112,-4,-128],low:[8,-88,20,-76,30,-66],face:[8,-88,18,-96,10,-110]};
+ const fa=o.arm||arms[pose]||arms.stand;limb(fa,arm,5);const hx=fa[fa.length-2],hy=fa[fa.length-1];dot(hx,hy,3.2,C.buff);
+ if(o.spear){const up=o.spear==='couch'?[-44,-86,88,-104]:[hx+1,hy-70,hx-3,hy+76];line(up,C.plum,2.8);const tip=o.spear==='couch'?P([88,-104,76,-108,78,-99]):P([hx+1,hy-70,hx-4,hy-56,hx+6,hy-57]);X.fillStyle=C.sky;X.fill(tip);edge(tip,1.3);if(o.pennon){const pn=o.spear==='couch'?P([70,-106,50,-118,54,-104]):P([hx,hy-58,hx-22,hy-52,hx-1,hy-44]);sh(pn,o.pennon,[hx-24,hy-60,26,18],0,1.5)}}
+ if(o.axe){line([hx-3,hy+24,hx+4,hy-40],C.plum,3);const ah=P([hx+2,hy-40,hx+18,hy-50,hx+20,hy-30,hx+4,hy-32]);sh(ah,C.sky,[hx,hy-52,22,24],0,1.6)}
+ if(o.sword){line([hx,hy+4,hx+(o.sword==='up'?2:34),hy-(o.sword==='up'?52:24)],C.sky,3.2);line([hx-6,hy,hx+6,hy+2],C.ink,2.4)}
+ if(o.baton){line([hx,hy+8,hx+8,hy-40],C.plum,4);dot(hx+8,hy-42,5,C.ochre)}
+ if(o.torch){line([hx,hy+10,hx+4,hy-26],C.plum,3);flame(hx+5,hy-28,.7)}
+ if(o.hawk)bird(hx+4,hy-10,.42,1,C.plum,C.ochre);
+ if(o.orb)dot(-12,-58,5,C.gold);
+ if(o.scep){line([hx,hy+10,hx+3,hy-40],C.gold,3);dot(hx+3,hy-43,4,C.gold)}
+ if(o.bow){const b=new Path2D();b.moveTo(hx,hy-26);b.quadraticCurveTo(hx+18,hy,hx,hy+26);edge(b,2.4,C.plum);line([hx,hy-26,hx,hy+26],C.ink,1)}
+ if(o.shield)kite(4,-78,o.shield,o.shield2||C.gold,1);
+ if(o.arrow)line([hx+30,hy-18,6,-107],C.plum,2);
+ if(o.spade){line([hx,hy+6,hx+14,hy+46],C.plum,3);const sp=P([hx+10,hy+44,hx+22,hy+42,hx+22,hy+58,hx+12,hy+60]);sh(sp,C.sky,[hx+8,hy+40,16,22],0,1.4)}
+ if(o.carry){at(-8,-86,.75,1,()=>man(0,0,{s:1,t:o.carry,h:C.ochre,pose:'raise',noBack:true}),-1.35)}
+})}
+
+function horse(x,y,o={}){const s=o.s||1.2,d=o.d||1;at(x,y,s,d,()=>{
+ const c=o.c||C.terra,c2=o.c2||C.blue,g=o.gallop;
+ const L=g?{fn:[30,-56,46,-40,62,-30],ff:[24,-56,36,-44,50,-50],hn:[-30,-56,-46,-38,-64,-24],hf:[-24,-54,-38,-34,-52,-14]}:{fn:[30,-56,34,-28,37,-3],ff:[24,-56,22,-28,17,-3],hn:[-30,-56,-38,-30,-37,-3],hf:[-24,-54,-22,-28,-15,-3]};
+ limb(L.ff,c2,7);limb(L.hf,c2,7);
+ limb([-42,-70,-58,-62,-60,-34],shade(c,-.4),6);
+ const nk=P([24,-74,42,-104,54,-106,54,-88,40,-52]);sh(nk,c,[22,-108,34,58],.4);
+ const bd=ell(0,-64,44,18);sh(bd,c,[-46,-84,92,40],.2);
+ const hd=new Path2D();hd.moveTo(44,-104);hd.lineTo(53,-116);hd.lineTo(58,-109);hd.quadraticCurveTo(72,-97,79,-86);hd.lineTo(73,-79);hd.quadraticCurveTo(62,-85,52,-86);hd.closePath();sh(hd,c,[42,-118,40,40],.4);
+ const er=P([51,-112,54,-124,58,-110]);sh(er,c,[50,-125,10,16],0,1.5);
+ limb(L.fn,c,7);limb(L.hn,c,7);
+ dot(60,-102,1.6,C.ink);
+ for(let k=0;k<5;k++)line([42+k*2,-104+k*9,36+k*2,-100+k*9],shade(c,-.5),2);
+ if(o.saddle!==0){const sd=P([-12,-82,14,-82,12,-62,-10,-62]);sh(sd,o.sc||C.gold,[-14,-84,30,24],1.5,1.6);line([76,-84,40,-86,18,-84],C.ink,1.6)}
+})}
+function rider(x,y,o={}){const s=o.s||1.2,d=o.d||1;horse(x,y,{s,d,c:o.hc,c2:o.hc2,gallop:o.gallop,sc:o.sc});man(x+d*(-4)*s,y-22*s,Object.assign({t:C.green,h:C.red},o.m||{},{s,d,ride:true}))}
+function hound(x,y,d=1,c=C.ochre){horse(x,y,{s:.4,d,c,c2:shade(c,-.25),gallop:true,saddle:0})}
+function bird(cx,cy,s,d,col,col2){at(cx,cy,s,d,()=>{limb([-14,0,-30,-8],col2,4);const bd=ell(0,0,16,8,-.2);sh(bd,col,[-18,-10,36,20],.3,1.8);limb([10,-4,17,-14,22,-16],col,4);const hd=ell(23,-17,5.5,4.5);sh(hd,col,[17,-22,12,10],0,1.5);line([28,-17,34,-15],C.ink,2);const wg=P([-4,-4,4,-24,16,-26,7,-4]);sh(wg,col2,[-6,-28,24,26],1,1.6);line([0,7,-2,17],C.ink,2);line([5,7,7,17],C.ink,2)})}
+function flame(x,y,sc=1){at(x,y,sc,1,()=>{const f=new Path2D();f.moveTo(0,10);f.quadraticCurveTo(-14,-2,-4,-26);f.quadraticCurveTo(-2,-12,4,-18);f.quadraticCurveTo(8,-30,6,-40);f.quadraticCurveTo(20,-18,10,10);f.closePath();sh(f,C.red,[-16,-42,38,54],1.2,1.6);const i=new Path2D();i.moveTo(0,8);i.quadraticCurveTo(-6,-4,0,-16);i.quadraticCurveTo(10,-2,6,8);i.closePath();laid(i,C.gold,[-8,-18,16,28],.2)})}
+function tree(x,y,o={}){const h=o.h||238,c=o.c||C.green,c2=o.c2||C.ochre;
+ limb([x,y,x-2,y-h*.35,x+2,y-h*.62],C.plum,9);
+ for(let k=0;k<3;k++){const yk=y-h*(.22+.17*k);for(const sd of[-1,1]){const bx=x+sd*(28-k*4);limb([x,yk,x+sd*16,yk-8,bx,yk-24,bx-sd*4,yk-40],C.plum,4);const lf=ell(bx-sd*2,yk-50,9,17,sd*.35);sh(lf,(k+(sd>0))%2?c:c2,[bx-14,yk-70,28,40],sd*.7,1.8)}}
+ const top=ell(x+2,y-h*.72,12,26);sh(top,c,[x-12,y-h*.72-28,28,56],.2);
+ const t2=ell(x-14,y-h*.66,8,16,-.5),t3=ell(x+18,y-h*.66,8,16,.5);sh(t2,c2,[x-24,y-h*.66-18,20,36],-.6,1.6);sh(t3,c2,[x+8,y-h*.66-18,20,36],.6,1.6)}
+function waves(x0,x1,y){const cols=[C.blue,C.sky,C.green];for(let k=0;k<3;k++){const pts=[];for(let xx=x0;xx<=x1;xx+=10)pts.push(xx,y+k*7+Math.sin((xx+k*17)/14)*3.2);line(pts,cols[k],3)}}
+function tiles(p,bb,col){X.save();X.clip(p);X.strokeStyle=shade(col,-.45);X.lineWidth=1.4;const[x,y,w,h]=bb;for(let yy=y+6,r=0;yy<y+h+8;yy+=8,r++)for(let xx=x-8+(r%2?6:0);xx<x+w+8;xx+=12){X.beginPath();X.arc(xx,yy,6,0,Math.PI);X.stroke()}X.restore()}
+function hall(x,y,w,h,o={}){const wall=o.c||C.ochre,roof=o.roof||C.red;
+ const lp=P([x,y,x+16,y,x+16,y-h,x,y-h]),rp=P([x+w-16,y,x+w,y,x+w,y-h,x+w-16,y-h]);sh(lp,wall,[x,y-h,16,h],1.2);sh(rp,wall,[x+w-16,y-h,16,h],1.2);
+ const bd=P([x,y-h,x+w,y-h,x+w,y-h+16,x,y-h+16]);sh(bd,shade(wall,-.12),[x,y-h,w,16],0,2);
+ const n=Math.max(2,Math.round((w-32)/80)),aw=(w-32)/n;for(let k=0;k<n;k++){const ax=x+16+k*aw;const a=new Path2D();a.moveTo(ax,y-h+16);a.quadraticCurveTo(ax+aw/2,y-h+44,ax+aw,y-h+16);edge(a,2)}
+ const rf=P([x-10,y-h,x+w+10,y-h,x+w-18,y-h-28,x+18,y-h-28]);laid(rf,roof,[x-10,y-h-30,w+20,32],0);tiles(rf,[x-10,y-h-30,w+20,30],roof);edge(rf);
+ if(o.towers){for(const tx of[x+8,x+w-8]){const t=P([tx-12,y-h-24,tx+12,y-h-24,tx+12,y-h-32,tx-12,y-h-32]);sh(t,C.blue,[tx-12,y-h-34,24,12],0,1.8);const dm=new Path2D();dm.moveTo(tx-13,y-h-32);dm.quadraticCurveTo(tx,y-h-50,tx+13,y-h-32);dm.closePath();sh(dm,C.green,[tx-14,y-h-48,28,18],0,1.8)}}
+ else line([x+w/2,y-h-28,x+w/2,y-h-40],C.ink,2.2)}
+function church(x,y,o={}){const s=o.s||1;X.save();X.translate(x,y);X.scale(s,s);churchBody(0,0,o);X.restore()}
+function churchBody(x,y,o){const nv=P([x-120,y,x+120,y,x+120,y-108,x-120,y-108]);sh(nv,C.ochre,[x-120,y-108,240,108],1.1);
+ for(let k=-1;k<=1;k++){const wx=x+k*70;const a=new Path2D();a.moveTo(wx-14,y-24);a.lineTo(wx-14,y-70);a.quadraticCurveTo(wx,y-92,wx+14,y-70);a.lineTo(wx+14,y-24);a.closePath();X.fillStyle='#d6c39a';X.fill(a);edge(a,2)}
+ const rf=P([x-132,y-108,x+132,y-108,x+108,y-132,x-108,y-132]);laid(rf,C.red,[x-132,y-134,264,28],0);tiles(rf,[x-132,y-134,264,26],C.red);edge(rf);
+ const tw=P([x-24,y-132,x+24,y-132,x+24,y-160,x-24,y-160]);sh(tw,C.blue,[x-24,y-162,48,30],0);
+ const dm=new Path2D();dm.moveTo(x-26,y-160);dm.quadraticCurveTo(x,y-190,x+26,y-160);dm.closePath();sh(dm,C.green,[x-26,y-186,52,28],.5);
+ line([x,y-182,x,y-202],C.ink,2.4);line([x-7,y-195,x+7,y-195],C.ink,2.4);
+ if(o.weather){line([x+100,y-132,x+100,y-160],C.ink,2);bird(x+106,y-166,.4,1,C.gold,C.red);man(x+76,y-130,{s:.55,t:C.terra,pose:'raise'})}}
+function motte(x,y,o={}){const cols=o.cols||[C.green,C.ochre,C.blue,C.terra,C.sage];
+ const m=new Path2D();m.moveTo(x-110,y);m.bezierCurveTo(x-80,y-40,x-60,y-110,x-40,y-116);m.lineTo(x+40,y-116);m.bezierCurveTo(x+60,y-110,x+80,y-40,x+110,y);m.closePath();
+ X.save();X.clip(m);for(let k=0;k<9;k++){const bp=new Path2D();const yb=y-k*14;bp.moveTo(x-130,yb);bp.quadraticCurveTo(x,yb-18,x+130,yb);bp.lineTo(x+130,yb-14);bp.quadraticCurveTo(x,yb-32,x-130,yb-14);bp.closePath();laid(bp,cols[k%cols.length],[x-130,yb-34,260,36],.4)}X.restore();edge(m);
+ const tw=P([x-34,y-116,x+34,y-116,x+30,y-168,x-30,y-168]);sh(tw,o.tc||C.terra,[x-35,y-170,70,56],1.1);
+ const cr=P([x-40,y-168,x+40,y-168,x+40,y-182,x-40,y-182]);sh(cr,C.blue,[x-40,y-184,80,16],0,2);
+ for(let k=-3;k<=3;k++)line([x+k*11,y-182,x+k*11,y-190],C.ink,2.4);
+ const dr=new Path2D();dr.moveTo(x-9,y-116);dr.lineTo(x-9,y-136);dr.quadraticCurveTo(x,y-148,x+9,y-136);dr.lineTo(x+9,y-116);X.fillStyle='#d6c39a';X.fill(dr);edge(dr,1.8);
+ if(o.bridge){line([x-40,y-116,x-120,y],C.plum,3);line([x-30,y-116,x-110,y],C.plum,3);for(let k=1;k<8;k++){const t=k/8;line([x-40-80*t,y-116+116*t,x-30-80*t,y-116+116*t],C.plum,2)}}}
+function ship(x,y,o={}){const s=o.s||1.08,d=o.d||1;at(x,y,s,d,()=>{
+ if(o.mast!==0){line([0,-180,160,-44],C.ink,1.6);line([0,-180,-150,-44],C.ink,1.6);limb([0,-30,0,-182],C.ochre,5)}
+ if(o.lantern){const ln=P([-6,-182,6,-182,4,-198,-4,-198]);sh(ln,C.gold,[-7,-200,14,20],0,1.5);line([0,-198,0,-206],C.ink,2)}
+ if(o.sail){const sp=new Path2D();sp.moveTo(-60,-172);sp.lineTo(60,-172);sp.quadraticCurveTo(94,-128,82,-80);sp.lineTo(-82,-80);sp.quadraticCurveTo(-94,-128,-60,-172);sp.closePath();X.save();X.clip(sp);const cs=[C.red,C.gold,C.blue,C.sage];for(let k=-5;k<5;k++){X.fillStyle=cs[(k+8)%4];X.fillRect(k*20,-180,20,110)}X.restore();laid(sp,'rgba(0,0,0,0)',[-94,-174,188,96],0);edge(sp)}
+ const crew=o.crew||0;for(let k=0;k<crew;k++){const cx=-100+k*(200/Math.max(1,crew-1));const hp=ell(cx,-60,8,9);X.fillStyle=C.buff;X.fill(hp);edge(hp,1.8);if(o.helms!==0){const hm=P([cx-9,-58,cx,-78,cx+9,-58]);sh(hm,k%2?C.ochre:C.sky,[cx-10,-80,20,24],0,1.6)}}
+ if(o.horses){for(let k=0;k<o.horses;k++){const hx=-90+k*62;at(hx,-44,.55,1,()=>{const hd=new Path2D();hd.moveTo(-6,0);hd.lineTo(4,-40);hd.lineTo(14,-50);hd.lineTo(18,-44);hd.quadraticCurveTo(30,-34,34,-26);hd.lineTo(28,-20);hd.quadraticCurveTo(20,-26,12,-26);hd.lineTo(10,0);hd.closePath();sh(hd,[C.terra,C.blue,C.ochre,C.sage][k%4],[-8,-52,44,54],.4)})}}
+ const hull=new Path2D();hull.moveTo(-172,-104);hull.quadraticCurveTo(-164,-56,-128,-36);hull.quadraticCurveTo(0,24,128,-36);hull.quadraticCurveTo(164,-56,172,-104);hull.lineTo(160,-100);hull.quadraticCurveTo(150,-60,120,-50);hull.quadraticCurveTo(0,-26,-120,-50);hull.quadraticCurveTo(-150,-60,-160,-100);hull.closePath();
+ laid(hull,o.c||C.red,[-175,-110,350,140],.1);X.save();X.clip(hull);limb(qpts(-150,-46,0,-2,150,-46),C.gold,5);limb(qpts(-140,-36,0,14,140,-36),C.blue,5);X.restore();edge(hull);
+ const pr=new Path2D();pr.moveTo(166,-100);pr.lineTo(176,-122);pr.lineTo(192,-120);pr.lineTo(186,-110);pr.lineTo(176,-106);pr.closePath();sh(pr,C.green,[164,-124,30,26],0,1.8);dot(182,-116,1.6,C.ink);
+ const st=new Path2D();st.moveTo(-168,-100);st.quadraticCurveTo(-184,-112,-178,-124);edge(st,3);
+ if(o.shields!==0&&!o.horses&&crew)for(let k=-3;k<=3;k++){const sp=ell(k*38,-44,9,9);sh(sp,k%2?C.gold:C.blue,[k*38-9,-53,18,18],0,1.6);dot(k*38,-44,2,C.ink)}
+ limb([-130,-58,-150,8],C.plum,4);
+ if(o.anchor){line([160,-80,196,10],C.ink,1.8);const an=P([188,4,204,4,196,16]);sh(an,C.sky,[186,2,20,16],0,1.6)}})}
+function bier(x,y){const b=P([x-90,y-104,x+90,y-104,x+84,y-132,x-84,y-132]);sh(b,C.red,[x-90,y-134,180,32],0);for(let k=-2;k<=2;k++){line([x+k*34,y-128,x+k*34,y-108],C.gold,2.4);line([x+k*34-6,y-120,x+k*34+6,y-120],C.gold,2.4)}
+ for(let k=0;k<4;k++){man(x-78+k*52,y,{s:.95,t:[C.green,C.terra,C.blue,C.sage][k],h:[C.ochre,C.blue,C.red,C.terra][k],walk:true,arm:[8,-88,14,-100,16,-110]})}}
+function reliq(x,y,kind){if(kind==='altar'){const st=P([x-26,y,x+26,y,x+22,y-66,x-22,y-66]);sh(st,C.ochre,[x-26,y-68,52,68],1.2);const cl=P([x-32,y-66,x+32,y-66,x+28,y-80,x-28,y-80]);sh(cl,C.red,[x-32,y-82,64,16],0,1.8);const rq=P([x-20,y-80,x+20,y-80,x+20,y-96,x,y-110,x-20,y-96]);sh(rq,C.gold,[x-20,y-112,40,32],0)}
+ else{line([x-24,y,x-20,y-64],C.plum,4);line([x+24,y,x+20,y-64],C.plum,4);line([x-38,y-60,x+38,y-60],C.plum,4);const rq=P([x-24,y-62,x+24,y-62,x+24,y-86,x+10,y-86,x,y-104,x-10,y-86,x-24,y-86]);sh(rq,C.gold,[x-24,y-106,48,44],0);dot(x,y-74,4,C.red)}}
+function arrows(x0,x1,n,y0,y1,ang=-.35){for(let k=0;k<n;k++){const ax=x0+(x1-x0)*R(),ay=y0+(y1-y0)*R();const dx=Math.cos(ang)*34,dy=Math.sin(ang)*34;line([ax,ay,ax+dx,ay+dy],C.plum,1.8);line([ax,ay,ax-5,ay-6],C.ink,1.5);line([ax,ay,ax-6,ay+4],C.ink,1.5)}}
+function lying(x,y,o={}){man(x,y,Object.assign({s:.9,t:C.blue,h:C.red},o,{arm:[8,-88,20,-80,30,-86]}));}
+
+/* borders */
+function borders(i,opts={}){
+ const top=[6,BT-4],bot=[BB+4,H-6];
+ line([0,BT-2,W,BT-2],C.ink,2.2);line([0,BB+2,W,BB+2],C.ink,2.2);line([0,5,W,5],C.ink,1.6);line([0,H-5,W,H-5],C.ink,1.6);
+ const cols=[C.red,C.green,C.gold,C.blue,C.terra,C.sage];
+ const band=(y0,y1,creatures,sd)=>{const off=((i*37)%112);for(let x=-off,k=0;x<W+80;x+=112,k++){const p=P([x,y0,x+12,y0,x-10,y1,x-22,y1]);sh(p,cols[(k+i)%cols.length],[x-24,y0,38,y1-y0],1.3,1.6);if(creatures){const cx=x+44,cy=(y0+y1)/2;if((k+i+sd)%2)bird(cx,cy+4,.72,(k%2?1:-1),cols[(k+2+i)%6],cols[(k+4+i)%6]);else{horse(cx,y1-3,{s:.3,d:(k%2?-1:1),c:cols[(k+3+i)%6],c2:cols[(k+5+i)%6],saddle:0})}}}};
+ band(top[0],top[1],true,0);
+ if(opts.battle){for(let x=-((i*37)%112),k=0;x<W+80;x+=112,k++){const p=P([x,bot[0],x+12,bot[0],x-10,bot[1],x-22,bot[1]]);sh(p,cols[(k+i)%6],[x-24,bot[0],38,bot[1]-bot[0]],1.3,1.6)}
+   for(let x=40;x<W-40;x+=112){const r=R();if(opts.archers&&r<.55)man(x+30,H-8,{s:.4,t:[C.green,C.terra,C.blue][Math.floor(R()*3)],pose:'hold',bow:true,walk:true});else if(r<.8)at(x+40,H-18,.9,1,()=>lying(0,0,{t:[C.blue,C.green,C.terra][Math.floor(R()*3)],s:.42,helm:R()<.5}),-Math.PI/2);else kite(x+30,H-30,C.gold,C.red,.7)}}
+ else if(opts.ghosts){band(bot[0],bot[1],false,1);X.save();X.globalAlpha=.85;for(const gx of[260,700,1140,1580]){at(gx,H-12,.3,1,()=>{const hull=new Path2D();hull.moveTo(-172,-104);hull.quadraticCurveTo(-164,-56,-128,-36);hull.quadraticCurveTo(0,24,128,-36);hull.quadraticCurveTo(164,-56,172,-104);hull.lineTo(160,-100);hull.quadraticCurveTo(150,-60,120,-50);hull.quadraticCurveTo(0,-26,-120,-50);hull.quadraticCurveTo(-150,-60,-160,-100);hull.closePath();X.fillStyle='#d8c7a0';X.fill(hull);edge(hull,5);line([0,-40,0,-150],C.ink,5)})}X.restore()}
+ else band(bot[0],bot[1],true,1);
+}
+function tituli(text){X.save();let fs=24;const f=n=>`700 ${n}px "Alegreya SC","Alegreya",Georgia,serif`;X.font=f(fs);try{X.letterSpacing='2.5px'}catch(e){}
+ while(X.measureText(text).width>W-120&&fs>14){fs--;X.font=f(fs)}
+ let x=(W-X.measureText(text).width)/2;const y=BT+28;const words=text.split(' ');
+ words.forEach((wd,k)=>{const col=wd==='·'?C.red:(k%6===4?C.red:(k%9===7?C.green:C.ink));X.fillStyle=col;X.fillText(wd,x,y);X.strokeStyle='rgba(235,220,185,.35)';X.lineWidth=.8;X.setLineDash([1.6,2]);X.strokeText(wd,x,y);X.setLineDash([]);x+=X.measureText(wd+' ').width});X.restore()}
+function linen(i){X.fillStyle='#d8c7a0';X.fillRect(0,0,W,H);
+ for(let y=0;y<H;y+=2){X.fillStyle=`rgba(90,68,38,${.03+R()*.06})`;X.fillRect(0,y,W,1)}
+ for(let x=0;x<W;x+=2){X.fillStyle=`rgba(255,248,230,${.02+R()*.05})`;X.fillRect(x,0,1,H)}
+ for(let k=0;k<7;k++){const gx=R()*W,gy=R()*H,gr=60+R()*200;const g=X.createRadialGradient(gx,gy,0,gx,gy,gr);g.addColorStop(0,`rgba(120,90,45,${.05+R()*.07})`);g.addColorStop(1,'rgba(120,90,45,0)');X.fillStyle=g;X.fillRect(gx-gr,gy-gr,gr*2,gr*2)}}
+
+/* ================= Hunt, facts, map, tally ================= */
+const SPOTS=[
+ {x:3200,y:470,t:"The fox and the crow",d:"In the lower border, a fox looks up at a crow holding a piece of cheese. It is Aesop's fable about flattery. Aesop's fables turn up several times in the borders, perhaps as sly comments on the main story.",h:"Look down at the border as Harold's men wade out to the ships."},
+ {x:9865,y:285,t:"Turold",d:"A small bearded man holding the horses is labelled TUROLD. He is one of only a handful of people named on the tapestry, and nobody knows why he earned it. Perhaps whoever commissioned it knew him.",h:"Among Duke William's messengers."},
+ {x:15860,y:290,t:"Ælfgyva",d:"A woman stands in a doorway while a cleric reaches out to touch her face. The caption says only 'where a cleric and Ælfgyva' and stops. It was clearly a scandal everyone knew in the 1070s, and nobody can decode it now.",h:"Just after William's palace."},
+ {x:26724,y:240,t:"The weathercock",d:"A workman fixes the weathercock on the roof of Westminster Abbey. The abbey was consecrated only days before Edward died, and it is still being finished as his funeral arrives.",h:"On the church roof as Edward's body is carried in."},
+ {x:27460,y:405,t:"The bell-ringers",d:"Beneath King Edward's bier walk two boys, each ringing a pair of hand bells: a small glimpse of an 11th-century royal funeral.",h:"Under the funeral bier."},
+ {x:30195,y:48,t:"Halley's Comet",d:"The 'star' the men marvel at is Halley's Comet, which blazed across the sky in April 1066 and was read as an omen of doom. It returns about every 76 years: last seen in 1986, next due in 2061.",h:"Look up, above the crowd pointing at the sky."},
+ {x:30240,y:462,t:"The ghost fleet",d:"Below Harold's throne, the border holds a row of empty ships stitched only in outline, like ghosts. They seem to foretell the Norman fleet that is coming for him.",h:"In the border just beneath the new King Harold."},
+ {x:47140,y:322,t:"Mother and child",d:"As soldiers torch a house, a woman leads a small boy out by the hand. She is one of only three women in the main story, and a rare glimpse of ordinary people caught up in the war.",h:"At the burning house near Hastings."},
+ {x:63640,y:172,t:"William lifts his helmet",d:"A rumour spreads that William has been killed. He pushes back his helmet to show his face, and Eustace of Boulogne points at him: 'Here is Duke William.' The battle turns.",h:"In the thick of the battle, after Bishop Odo."},
+ {x:66740,y:200,t:"The arrow in the eye?",d:"HAROLD is stitched above a man pulling at an arrow near his eye. Or is Harold the next man, cut down by a horseman? Early drawings show a different shape here, and the arrow may be partly later restoration. Historians still argue.",h:"The death of the king, near the end."}
+];
+const FACTS=[
+ "It isn't a tapestry. A tapestry is woven; this is embroidery, with coloured wool stitched onto a long strip of linen.",
+ "Harold carries a hawk on his wrist in the opening scenes. Hawks were a badge of high rank, so he is being introduced as a great nobleman.",
+ "The whole thing is nine pieces of linen sewn end to end. The joins are hidden so well that they are hard to find even when you know to look.",
+ "Only a handful of people are named on the whole tapestry, out of more than 600 figures.",
+ "Look at the hair. The English are drawn with moustaches; most Normans are clean-shaven, with the backs of their heads shaved.",
+ "The lower border here shows farm work in miniature: ploughing, sowing seed, a horse drawing a harrow and a slinger scaring off birds.",
+ "The embroiderers used about ten colours of wool from three dye plants: madder for reds, weld for yellows and woad for blues. The greens come from dyeing with two of them.",
+ "In the border beneath Ælfgyva, a naked man copies the cleric's pose. Whatever the joke was, the embroiderers expected people to get it.",
+ "Mont-Saint-Michel is shown as a church on a mound above the tidal sands. It was already a famous pilgrimage site at the time.",
+ "The river Couesnon, where Harold rescues the soldiers, still marks the border between Normandy and Brittany.",
+ "Conan of Brittany escapes the castle at Dol by sliding down a rope. The castles are drawn as mottes: a tower on an earth mound, with a bridge up to the gate.",
+ "Conan surrenders by passing the castle keys out on the tip of a lance, a gesture everyone at the time would have understood.",
+ "When William gives Harold arms, it is more than a gift. To Norman eyes it made Harold William's man, and that is the start of the case against him.",
+ "Nobody knows exactly where the oath took place. The tapestry says Bayeux, while other Norman writers say Bonneville or Rouen.",
+ "Two stitches do almost all the work: stem stitch for outlines and letters, and laid-and-couched work, now called Bayeux stitch, for the solid colours.",
+ "Westminster Abbey was consecrated on 28 December 1065. King Edward was too ill to attend, and he died about a week later.",
+ "The story runs backwards here. You see the funeral first, then the deathbed above and Edward's body being prepared below.",
+ "The archbishop beside Harold is Stigand, whom the pope did not recognise. Showing him quietly questions whether the coronation was valid.",
+ "Halley's Comet appeared in April 1066. This is one of the oldest surviving pictures of it.",
+ "The tools are shown in detail: axes to fell the trees, adzes to shape the planks, and augers to bore the holes.",
+ "Everything gets loaded, including a cask of wine on a cart. Mail shirts were so heavy that two men carry each one on a pole.",
+ "The fleet crossed overnight on 27–28 September 1066, sailing from Saint-Valery-sur-Somme and landing at Pevensey.",
+ "The foragers here are led by a man labelled WADARD. A knight of that name held land in Kent from Bishop Odo, a strong hint that Odo paid for the tapestry.",
+ "'Ceastra' at the end of the caption is an Old English word, not Latin: one of the clues that English embroiderers did the stitching.",
+ "Only three women appear in the main story: Ælfgyva, Queen Edith at Edward's deathbed, and this mother escaping the burning house. A few more appear in the borders.",
+ "Vital, the scout William questions here, also turns up in the records as a tenant of Bishop Odo in Kent, like Wadard.",
+ "The English fought on foot in a shield wall, some swinging huge two-handed axes. The Normans relied on cavalry and archers.",
+ "A popular story says Bishop Odo carried a club so that he would not shed blood. Many historians think it was simply a staff of command.",
+ "The battle was fought on 14 October 1066 and lasted most of the day, which was unusually long for a medieval battle.",
+ "The real ending is lost, and much of what survives here is later restoration. Many think the tapestry once ended with William crowned on Christmas Day 1066."
+];
+const PLACES={westminster:[-0.13,51.5,"Westminster"],bosham:[-0.86,50.83,"Bosham"],ponthieu:[1.62,50.25,"Ponthieu"],beaurain:[1.77,50.47,"Beaurain"],rouen:[1.10,49.44,"Rouen"],msm:[-1.51,48.64,"Mont-Saint-Michel"],dol:[-1.75,48.55,"Dol"],dinan:[-2.05,48.45,"Dinan"],bayeux:[-0.70,49.28,"Bayeux"],dives:[-0.10,49.29,"Dives-sur-Mer"],valery:[1.63,50.18,"Saint-Valery"],pevensey:[0.33,50.82,"Pevensey"],hastings:[0.59,50.86,"Hastings"],battle:[0.49,50.91,"Battle"]};
+const SEC_PLACE=["bosham","bosham","ponthieu","beaurain","beaurain","beaurain","rouen","rouen","msm","msm","dol","dinan","dinan","bayeux","bosham","westminster","westminster","westminster","westminster","dives","dives","pevensey","hastings","hastings","hastings","battle","battle","battle","battle","battle"];
+const TP=[12,15,14,14,12,14,14,8,14,16,14,18,6,10,12,20,14,16,16,16,20,30,26,18,16,40,50,40,40,30],TH=[4,0,0,4,0,6,4,0,8,6,6,8,2,0,2,0,0,0,0,0,0,10,4,4,6,20,30,24,24,18],TS=[0,4,3,1,0,0,0,0,0,0,0,0,0,0,2,0,0,0,1,8,6,14,1,0,0,0,0,0,0,0];
+const norm=(a,T)=>{const t=a.reduce((x,y)=>x+y,0);return a.map(v=>v*T/t)};const NP=norm(TP,626),NH=norm(TH,190),NS=norm(TS,41);
+function tallyAt(m){const i=secAt(m),f=Math.max(0,Math.min(1,(m-SEC[i])/(secEnd(i)-SEC[i])));const sum=a=>a.slice(0,i).reduce((x,y)=>x+y,0)+a[i]*f;return[sum(NP),sum(NH),sum(NS)].map(Math.round)}
+const found=new Set();try{JSON.parse(localStorage.getItem('bayeux-found')||'[]').forEach(i=>found.add(i))}catch(e){}
+const saveFound=()=>{try{localStorage.setItem('bayeux-found',JSON.stringify([...found]))}catch(e){}};
+const $=id=>document.getElementById(id);
+const pinsEl=$('pins');const pinEls=SPOTS.map((sp,i)=>{const b=document.createElement('button');b.className='pin'+(found.has(i)?' found':'');b.textContent=found.has(i)?'✓':'?';b.setAttribute('aria-label',found.has(i)?sp.t:'A detail to spot');b.hidden=true;b.addEventListener('pointerdown',e=>e.stopPropagation());b.onclick=e=>{e.stopPropagation();spotIt(i)};pinsEl.appendChild(b);return b});
+function huntCount(){$('huntCount').textContent=found.size+'/'+SPOTS.length}
+function spotIt(i){const sp=SPOTS[i],first=!found.has(i);found.add(i);saveFound();pinEls[i].classList.add('found');pinEls[i].textContent='✓';pinEls[i].setAttribute('aria-label',sp.t);huntCount();
+ $('popEye').textContent=first?'Spotted!':'Spotted';$('popTitle').textContent=sp.t;$('popText').textContent=sp.d;$('popCount').textContent=found.size===SPOTS.length?'All ten found. Well spotted!':`${found.size} of ${SPOTS.length} found`;$('pop').hidden=false;$('popClose').focus({preventScroll:true});hideHint()}
+$('popClose').onclick=()=>{$('pop').hidden=true};
+let tmpV=null;
+const dockEl=document.querySelector('.dock'),topEl=document.querySelector('.top');
+function placePins(){if(!camera||!window.THREE)return;tmpV=tmpV||new THREE.Vector3();const w=innerWidth,h=innerHeight,yMin=topEl.querySelector('.tools').getBoundingClientRect().bottom+14,yMax=dockEl.getBoundingClientRect().top+30;SPOTS.forEach((sp,i)=>{const x=sp.x/PXM;const b=pinEls[i];if(!entered||Math.abs(x-st.s)>st.dist*2.4){b.hidden=true;return}
+ tmpV.set(x,SLICE_H/PXM/2-sp.y/PXM,ripple(x,0)+.012).project(camera);if(tmpV.z>1||Math.abs(tmpV.x)>1.02||Math.abs(tmpV.y)>1.02){b.hidden=true;return}
+ const px=(tmpV.x+1)/2*w,py=(1-tmpV.y)/2*h;if(py<yMin||py>yMax||px<14||px>w-14){b.hidden=true;return}b.hidden=false;b.style.transform=`translate(${px.toFixed(1)}px,${py.toFixed(1)}px)`})}
+function openSheet(id,focusId){$(id).hidden=false;$(focusId).focus()}
+function closeSheet(id){$(id).hidden=true}
+function renderHunt(){const ol=$('huntList');ol.innerHTML='';SPOTS.map((sp,i)=>({sp,i})).forEach(({sp,i})=>{const li=document.createElement('li');const done=found.has(i);li.className=done?'done':'';
+ li.innerHTML=`<span class="tick" aria-hidden="true">${done?'✓':''}</span><div><div class="t"></div><div class="h"></div></div><button class="btn">Take me there</button>`;li.querySelector('.t').textContent=done?sp.t:'Not spotted yet';li.querySelector('.h').textContent=sp.h;
+ li.querySelector('button').onclick=()=>{closeSheet('huntSheet');st.sT=sp.x/PXM;st.distT=Math.min(st.distT,1.1);st.v=0;if(st.walk)setWalk(false)};ol.appendChild(li)})}
+$('huntBtn').onclick=()=>{renderHunt();openSheet('huntSheet','closeHunt')};$('closeHunt').onclick=()=>closeSheet('huntSheet');
+$('huntSheet').addEventListener('click',e=>{if(e.target.id==='huntSheet')closeSheet('huntSheet')});
+function openShop(){const[p,h]=tallyAt(TOTAL);$('souvenir').innerHTML=`<div><b>68.38 m</b><span>of linen</span></div><div><b>${found.size}/${SPOTS.length}</b><span>details spotted</span></div><div><b>≈${p}</b><span>people passed</span></div><div><b>≈${h}</b><span>horses passed</span></div>`;openSheet('shopSheet','closeShop')}
+$('exitBtn').onclick=openShop;$('closeShop').onclick=()=>closeSheet('shopSheet');
+$('shopSheet').addEventListener('click',e=>{if(e.target.id==='shopSheet')closeSheet('shopSheet')});
+$('againBtn').onclick=()=>{closeSheet('shopSheet');st.sT=.7;st.v=0;st.distT=1.45};
+const side=$('side'),sideBtn=$('sideBtn');
+sideBtn.onclick=()=>{const on=!side.classList.contains('open');side.classList.toggle('open',on);sideBtn.setAttribute('aria-pressed',on)};
+const MAPB={x0:-2.9,x1:2.7,y0:47.95,y1:51.75};const mp=(lo,la)=>[+((lo-MAPB.x0)/(MAPB.x1-MAPB.x0)*250).toFixed(1),+((MAPB.y1-la)/(MAPB.y1-MAPB.y0)*190).toFixed(1)];
+const ENG=[[-2.95,50.62],[-2.45,50.6],[-1.95,50.7],[-1.3,50.78],[-0.8,50.77],[-0.2,50.81],[0.25,50.74],[0.6,50.86],[0.98,50.92],[1.38,51.15],[1.44,51.38],[0.9,51.47],[0.5,51.52],[0.9,51.8]];
+const FRA=[[2.75,51.07],[1.6,50.9],[1.58,50.73],[1.6,50.35],[1.4,50.05],[0.6,49.87],[0.12,49.7],[0.2,49.45],[-0.2,49.3],[-0.9,49.38],[-1.2,49.4],[-1.25,49.7],[-1.6,49.67],[-1.95,49.72],[-1.8,49.35],[-1.6,48.85],[-1.5,48.66],[-2.0,48.63],[-2.5,48.55],[-2.95,48.5]];
+function buildMap(){const svg=$('map');const path=pts=>pts.map((p,i)=>(i?'L':'M')+mp(p[0],p[1]).join(' ')).join('');
+ let h=`<rect width="250" height="190" fill="#22303b"/><path d="${path(ENG)}L260 -10L-10 -10Z" fill="#54462f" stroke="#a8997e" stroke-width=".8"/><path d="${path(FRA)}L-10 200L260 200Z" fill="#54462f" stroke="#a8997e" stroke-width=".8"/>`;
+ h+=`<text x="58" y="20" fill="#d9c9a6" font-size="10" font-family="Alegreya Sans,sans-serif" letter-spacing="2">ENGLAND</text><text x="120" y="168" fill="#d9c9a6" font-size="10" font-family="Alegreya Sans,sans-serif" letter-spacing="2">NORMANDY</text><text x="40" y="92" fill="#8fb0c4" font-size="9" font-style="italic" font-family="Alegreya,serif">the Channel</text>`;
+ const route=["westminster","bosham","ponthieu","beaurain","rouen","msm","dol","dinan","bayeux","bosham"],inv=["dives","valery","pevensey","hastings","battle"];
+ const line=ks=>ks.map((k,i)=>(i?'L':'M')+mp(PLACES[k][0],PLACES[k][1]).join(' ')).join('');
+ h+=`<path d="${line(route)}" fill="none" stroke="#e8dcc0" stroke-opacity=".5" stroke-width="1.1" stroke-dasharray="3 3"/><path d="${line(inv)}" fill="none" stroke="#d4a748" stroke-opacity=".75" stroke-width="1.4" stroke-dasharray="4 2"/>`;
+ for(const k in PLACES){const[x,y]=mp(PLACES[k][0],PLACES[k][1]);h+=`<circle cx="${x}" cy="${y}" r="2.4" fill="#e8dcc0" stroke="#15110d" stroke-width=".8"/>`}
+ h+=`<circle id="mapHalo" r="8" fill="none" stroke="#d4a748" stroke-width="2"/><circle id="mapDot" r="4.2" fill="#d4a748" stroke="#15110d" stroke-width="1"/>`;svg.innerHTML=h}
+buildMap();
+function setPlace(i){const k=SEC_PLACE[i];const[x,y]=mp(PLACES[k][0],PLACES[k][1]);for(const id of['mapHalo','mapDot']){const c=$(id);c.setAttribute('cx',x);c.setAttribute('cy',y)}$('mapPlace').textContent=PLACES[k][2];$('fact').textContent=FACTS[i];$('fact2').textContent=FACTS[i]}
+setPlace(0);huntCount();
+let lastT=-1;function updateExtras(){const k=Math.round(st.s*10);if(lastT!==k){lastT=k;const[p,h,s2]=tallyAt(st.s);$('tP').textContent='≈'+p;$('tH').textContent='≈'+h;$('tS').textContent='≈'+s2;$('exitBtn').hidden=!(entered&&st.s>TOTAL-1.6)}placePins()}
+
+/* ================= Three.js world ================= */
+const stage=document.getElementById('stage'),loader=document.getElementById('loader'),loadBar=document.getElementById('loadBar'),loadMsg=document.getElementById('loadMsg');
+const N=SCENES.length,PXW=69502,PXM=PXW/68.38,TOTAL=68.38,REAL=68.38;
+const SLICES=17,SLICE_W=i=>i<SLICES-1?4096:PXW-4096*(SLICES-1),SLICE_H=512;
+// start of each section on the cloth (px), from the scene-by-scene Commons photography
+const SEC_PX=[0,1528,3359,5672,7467,9709,13105,14893,15916,16810,17978,19275,21884,22346,23860,26325,27298,28228,29482,31284,34384,35631,43675,45218,46818,49067,52630,61703,65127,66843];
+const SEC=SEC_PX.map(p=>p/PXM);
+const secAt=m=>{let i=0;for(let k=0;k<N;k++)if(SEC[k]<=m+.05)i=k;return i};
+const secEnd=i=>i<N-1?SEC[i+1]:TOTAL;
+document.getElementById('cTot').textContent=N;
+const canvases=[];
+const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
+const small=Math.min(screen.width,screen.height)<700;
+
+function ticketArt(){const c=document.getElementById('tkArt');X=c.getContext('2d');R=mulberry(14101066);
+ const g=232;tree(46,g,{h:210});rider(220,g,{hc:C.terra,hc2:C.blue,m:{t:C.green,eng:1,hawk:1,pose:'hold'}});hound(380,g-2,1,C.ochre);hound(450,g-6,1,C.blue);
+ rider(610,g,{hc:C.blue,hc2:C.ochre,m:{t:C.red,h:C.blue,eng:1,pose:'point'}});tree(790,g,{h:210,c:C.sage,c2:C.red});line([0,g+3,840,g+3],C.ink,2)}
+try{ticketArt()}catch(e){}
+let intro=0,entered=false;
+function gateReady(){const b=document.getElementById('tear');b.disabled=false;document.getElementById('tearCta').textContent='Tear to enter';loadMsg.textContent='Your ticket is ready. Tear off the stub to go in.';b.focus({preventScroll:true});b.onclick=enter}
+function enter(){if(entered)return;entered=true;const tk=document.getElementById('ticket');tk.classList.add('torn');
+ if(!reduce){const r=document.getElementById('tear').getBoundingClientRect();const cols=['#9b3e2b','#3e5b79','#c29440','#56693f','#b66a4a','#8c9a66'];for(let i=0;i<46;i++){const t=document.createElement('i');t.className='thread';const x=r.left+(innerWidth<=600?Math.random()*r.width:0),y=r.top+(innerWidth<=600?0:Math.random()*r.height);t.style.cssText=`left:${x}px;top:${y}px;height:${6+Math.random()*14}px;background:${cols[i%6]};--dx:${(Math.random()-.3)*160}px;--dy:${120+Math.random()*260}px;--r:${(Math.random()-.5)*540}deg;animation-delay:${Math.random()*.25}s`;document.body.appendChild(t);setTimeout(()=>t.remove(),2200)}}
+ setTimeout(()=>{loader.classList.add('done');st.distT=1.45;st.yawT=0;st.pitchT=.02;intro=performance.now()+3800;clearTimeout(hintT);hintT=setTimeout(hideHint,7000);document.getElementById('hint').classList.remove('gone');stage.focus?.()},reduce?0:520)}
+async function build(){
+ try{await Promise.race([document.fonts.load('700 24px "Alegreya SC"'),new Promise(r=>setTimeout(r,2500))])}catch(e){}
+ let n=0;const load=i=>new Promise((res,rej)=>{const im=new Image();im.decoding='async';im.onload=async()=>{try{await im.decode()}catch(e){}n++;loadMsg.textContent=`Unrolling the linen: ${n} of ${SLICES} lengths`;loadBar.style.width=(n/SLICES*100)+'%';
+   if(small){const c=document.createElement('canvas');c.width=Math.round(im.naturalWidth/2);c.height=SLICE_H/2;c.getContext('2d').drawImage(im,0,0,c.width,c.height);res(c)}else res(im)};im.onerror=()=>rej(i);im.src='tap/t'+String(i+1).padStart(2,'0')+'.jpg'});
+ try{const all=await Promise.all(Array.from({length:SLICES},(_,i)=>load(i)));canvases.push(...all)}catch(e){loadMsg.textContent='Part of the tapestry failed to load. Reload the page to try again.';return}
+ if(!window.THREE||!webgl()){fallback();return}
+ world();
+}
+function webgl(){try{const c=document.createElement('canvas');return!!(c.getContext('webgl2')||c.getContext('webgl'))}catch(e){return false}}
+function fallback(){const f=document.createElement('div');f.className='fallback';canvases.forEach(c=>f.appendChild(c));document.body.appendChild(f);stage.remove();gateReady();document.getElementById('hint').textContent='3D view unavailable here; scroll sideways instead';setupStrip();let idx=0;f.addEventListener('scroll',()=>{const s=f.scrollLeft/(f.scrollWidth-f.clientWidth||1)*TOTAL;setPos(s);});updateCaption(0);}
+
+let renderer,scene,camera,spot,fill;
+const st={s:.7,sT:.7,dist:3.8,distT:3.8,yaw:-.95,yawT:-.95,pitch:.32,pitchT:.32,v:0,walk:false};
+function ripple(x,y){return .014*Math.sin(x*6.3)+.009*Math.sin(x*2.2+1.3)+.004*Math.sin(x*15.7+y*4)+.006*Math.sin(x*1.1)*(y+.25)}
+function world(){
+ renderer=new THREE.WebGLRenderer({antialias:true});renderer.setPixelRatio(Math.min(devicePixelRatio,2));renderer.outputEncoding=THREE.sRGBEncoding;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.05;stage.appendChild(renderer.domElement);
+ scene=new THREE.Scene();scene.background=new THREE.Color('#15110d');scene.fog=new THREE.Fog('#15110d',3.5,11);
+ camera=new THREE.PerspectiveCamera(38,1,.03,60);
+ scene.add(new THREE.HemisphereLight(0xfff0d8,0x1a120a,.55));
+ spot=new THREE.SpotLight(0xffe0b0,1.75,7,.62,.75,1.1);scene.add(spot);scene.add(spot.target);
+ fill=new THREE.DirectionalLight(0xbfd0e0,.18);fill.position.set(-2,1,2);scene.add(fill);
+ const wall=new THREE.Mesh(new THREE.PlaneGeometry(TOTAL+30,5),new THREE.MeshStandardMaterial({color:'#2b2219',roughness:1}));wall.position.set(TOTAL/2,.4,-.09);scene.add(wall);
+ const floor=new THREE.Mesh(new THREE.PlaneGeometry(TOTAL+30,8),new THREE.MeshStandardMaterial({color:'#1b150f',roughness:.9}));floor.rotation.x=-Math.PI/2;floor.position.set(TOTAL/2,-1.05,2);scene.add(floor);
+ const ledge=new THREE.Mesh(new THREE.BoxGeometry(TOTAL+.4,.025,.16),new THREE.MeshStandardMaterial({color:'#3a2c1e',roughness:.6}));ledge.position.set(TOTAL/2,-.29,0);scene.add(ledge);
+ const rail=new THREE.Mesh(new THREE.CylinderGeometry(.008,.008,TOTAL+.4,8),new THREE.MeshStandardMaterial({color:'#8a6a3a',metalness:.7,roughness:.35}));rail.rotation.z=Math.PI/2;rail.position.set(TOTAL/2,.275,.01);scene.add(rail);
+ const aniso=renderer.capabilities.getMaxAnisotropy();
+ let x0=0;canvases.forEach((c,i)=>{const tex=c instanceof HTMLImageElement?new THREE.Texture(c):new THREE.CanvasTexture(c);tex.needsUpdate=true;tex.anisotropy=aniso;tex.encoding=THREE.sRGBEncoding;
+  const sw=SLICE_W(i)/PXM,shh=SLICE_H/PXM;const geo=new THREE.PlaneGeometry(sw,shh,Math.round(sw*40),6);const pos=geo.attributes.position;const cx=x0+sw/2;x0+=sw;for(let v=0;v<pos.count;v++){const lx=pos.getX(v),ly=pos.getY(v);pos.setZ(v,ripple(cx+lx,ly))}geo.computeVertexNormals();
+  const mat=new THREE.MeshStandardMaterial({map:tex,bumpMap:tex,bumpScale:.0018,roughness:.93,metalness:0,side:THREE.DoubleSide});
+  const mesh=new THREE.Mesh(geo,mat);mesh.position.x=cx;scene.add(mesh)});
+ resize();addEventListener('resize',resize);setupInput();setupStrip();gateReady();updateCaption(0,true);requestAnimationFrame(tick);
+}
+function resize(){if(!renderer)return;const w=innerWidth,h=innerHeight;renderer.setSize(w,h,false);camera.aspect=w/h;camera.updateProjectionMatrix();drawStrip()}
+function viewWidth(){return 2*st.dist*Math.tan(THREE.MathUtils.degToRad(camera.fov/2))*camera.aspect}
+let last=performance.now();
+function tick(now){const dt=Math.min(.05,(now-last)/1000);last=now;
+ if(st.walk){st.sT+=dt*.16;if(st.sT>=TOTAL-.6){st.walk=false;setWalk(false)}}
+ if(!dragging&&Math.abs(st.v)>1e-4){st.sT+=st.v*dt;st.v*=Math.pow(.04,dt)}
+ if(!entered){st.sT=.7+Math.sin(now/5000)*.15}
+ st.sT=Math.max(.25,Math.min(TOTAL-.25,st.sT));st.distT=Math.max(.16,Math.min(3.4,st.distT));st.pitchT=Math.max(-.3,Math.min(.5,st.pitchT));
+ const k=reduce?1:1-Math.pow(now<intro?.18:.0009,dt);st.s+=(st.sT-st.s)*k;st.dist+=(st.distT-st.dist)*k;st.yaw+=(st.yawT-st.yaw)*k*.8;st.pitch+=(st.pitchT-st.pitch)*k;
+ const tx=st.s,ty=-.14*Math.min(1,st.dist/1.2),tz=0;camera.position.set(tx+st.dist*Math.sin(st.yaw)*Math.cos(st.pitch),ty+st.dist*Math.sin(st.pitch),tz+st.dist*Math.cos(st.yaw)*Math.cos(st.pitch));camera.lookAt(tx,ty,tz);
+ spot.position.set(tx-.5,1.35,1.1);spot.target.position.set(tx+.15,0,0);
+ renderer.render(scene,camera);updateUI();updateExtras();requestAnimationFrame(tick)}
+
+/* ================= Input ================= */
+let dragging=false;
+function setupInput(){const ptrs=new Map();let lastX=0,lastY=0,lastT=0,pinch0=0,dist0=0;
+ stage.addEventListener('pointerdown',e=>{stage.setPointerCapture(e.pointerId);ptrs.set(e.pointerId,{x:e.clientX,y:e.clientY});dragging=true;stage.classList.add('drag');lastX=e.clientX;lastY=e.clientY;lastT=performance.now();st.v=0;if(st.walk)setWalk(false);hideHint();if(ptrs.size===2){const[a,b]=[...ptrs.values()];pinch0=Math.hypot(a.x-b.x,a.y-b.y);dist0=st.distT}});
+ stage.addEventListener('pointermove',e=>{if(!ptrs.has(e.pointerId))return;ptrs.set(e.pointerId,{x:e.clientX,y:e.clientY});
+  if(ptrs.size===2){const[a,b]=[...ptrs.values()];const d=Math.hypot(a.x-b.x,a.y-b.y);if(pinch0)st.distT=dist0*pinch0/d;return}
+  const dx=e.clientX-lastX,dy=e.clientY-lastY,now=performance.now();const m=viewWidth()/innerWidth*Math.cos(st.yaw);st.sT-=dx*m;st.s-=dx*m*.6;st.pitchT+=dy*.0025;const dtt=Math.max(1,now-lastT)/1000;st.v=-dx*m/dtt*.9;lastX=e.clientX;lastY=e.clientY;lastT=now});
+ const up=e=>{ptrs.delete(e.pointerId);if(ptrs.size<2)pinch0=0;if(ptrs.size===0){dragging=false;stage.classList.remove('drag');if(performance.now()-lastT>80)st.v=0}};
+ stage.addEventListener('pointerup',up);stage.addEventListener('pointercancel',up);
+ stage.addEventListener('wheel',e=>{e.preventDefault();hideHint();if(st.walk)setWalk(false);if(e.ctrlKey){st.distT*=Math.exp(e.deltaY*.01)}else{const d=Math.abs(e.deltaX)>Math.abs(e.deltaY)?e.deltaX:e.deltaY;st.sT+=d*.0018*st.dist}},{passive:false});
+ addEventListener('keydown',e=>{if(!entered)return;if(e.key==='Escape'){for(const id of['huntSheet','shopSheet'])if(!$(id).hidden){closeSheet(id);return}if(!$('pop').hidden){$('pop').hidden=true;return}}if(!$('huntSheet').hidden||!$('shopSheet').hidden)return;if(!document.getElementById('sheet').hidden){if(e.key==='Escape')closeInfo();return}const k=e.key;
+  if(k==='ArrowRight'){st.sT+=.25*st.dist;hideHint()}else if(k==='ArrowLeft'){st.sT-=.25*st.dist;hideHint()}
+  else if(k===']'||k==='PageDown')go(tgt()+1);else if(k==='['||k==='PageUp')go(tgt()-1);
+  else if(k==='+'||k==='='){st.distT*=.8}else if(k==='-'||k==='_'){st.distT*=1.25}
+  else if(k===' '){e.preventDefault();setWalk(!st.walk)}else if(k==='a'||k==='A')toggleAngle();
+  else if(k==='ArrowUp'){st.pitchT+=.06}else if(k==='ArrowDown'){st.pitchT-=.06}else if(k==='Home'){st.sT=.7}else if(k==='End'){st.sT=TOTAL-.7}else return;});
+ document.getElementById('zoomIn').onclick=()=>{st.distT*=.72};document.getElementById('zoomOut').onclick=()=>{st.distT*=1.38};
+ document.getElementById('walk').onclick=()=>setWalk(!st.walk);document.getElementById('angle').onclick=toggleAngle;
+ document.getElementById('prev').onclick=()=>go(tgt()-1);document.getElementById('next').onclick=()=>go(tgt()+1);
+}
+function tgt(){return secAt(st.sT)}
+function go(i){i=Math.max(0,Math.min(N-1,i));st.sT=SEC[i]+Math.min(.9,(secEnd(i)-SEC[i])/2);st.v=0;if(st.walk)setWalk(false);hideHint()}
+function setWalk(on){st.walk=on;const b=document.getElementById('walk');b.setAttribute('aria-pressed',on);b.querySelector('.lbl').textContent=on?'Pause':'Walk';document.getElementById('walkIcon').setAttribute('d',on?'M4 2.5h3v11H4zM9 2.5h3v11H9z':'M4 2.5v11l9-5.5z');if(on){st.v=0;hideHint()}}
+function toggleAngle(){const on=st.yawT===0;st.yawT=on?-.62:0;if(on&&st.distT<1)st.distT=1.2;document.getElementById('angle').setAttribute('aria-pressed',on)}
+let hintT=0;document.getElementById('hint').classList.add('gone');function hideHint(){document.getElementById('hint').classList.add('gone')}
+document.getElementById('info').onclick=()=>{document.getElementById('sheet').hidden=false;document.getElementById('closeInfo').focus()};
+function closeInfo(){document.getElementById('sheet').hidden=true;document.getElementById('info').focus()}
+document.getElementById('closeInfo').onclick=closeInfo;document.getElementById('sheet').addEventListener('click',e=>{if(e.target.id==='sheet')closeInfo()});
+
+/* ================= Caption + strip ================= */
+let cur=-1;const cap=document.getElementById('caption');let capTimer;
+function updateCaption(i,now){if(i===cur)return;cur=i;const sc=SCENES[i];const apply=()=>{document.getElementById('cNum').textContent=i+1;document.getElementById('cTrad').textContent=(sc.t.includes('–')?'Traditional scenes ':'Traditional scene ')+sc.t;document.getElementById('cLatin').textContent=sc.la;document.getElementById('cEnglish').textContent=sc.en;document.getElementById('cNote').textContent=sc.no;setPlace(i);cap.classList.remove('out')};
+ clearTimeout(capTimer);if(now||reduce){apply();return}cap.classList.add('out');capTimer=setTimeout(apply,220)}
+const strip=document.getElementById('strip'),scrub=document.getElementById('scrub'),win=document.getElementById('win');
+function setupStrip(){drawStrip();const ruler=document.getElementById('ruler');ruler.innerHTML='';for(let m=0;m<=70;m+=10){if(m>REAL-(scrub.clientWidth<600?9:3))break;const sp=document.createElement('span');sp.style.left=(m/REAL*100)+'%';sp.textContent=m+' m';ruler.appendChild(sp)}const e=document.createElement('span');e.style.left='100%';e.textContent=REAL.toFixed(2).replace('.',',').replace(',','.')+' m';ruler.appendChild(e);
+ let down=false;const set=ev=>{const r=scrub.getBoundingClientRect();const f=Math.max(0,Math.min(1,(ev.clientX-r.left)/r.width));st.sT=f*TOTAL;if(!renderer)setPos(st.sT);st.v=0;if(st.walk)setWalk(false);hideHint()};
+ scrub.addEventListener('pointerdown',e=>{down=true;scrub.setPointerCapture(e.pointerId);set(e)});scrub.addEventListener('pointermove',e=>{if(down)set(e)});scrub.addEventListener('pointerup',()=>down=false);
+ scrub.addEventListener('keydown',e=>{if(e.key==='ArrowRight'){go(cur+1);e.preventDefault();e.stopPropagation()}else if(e.key==='ArrowLeft'){go(cur-1);e.preventDefault();e.stopPropagation()}})}
+function drawStrip(){if(!canvases.length)return;const r=scrub.getBoundingClientRect();const dpr=Math.min(devicePixelRatio,2);strip.width=Math.max(1,Math.round(r.width*dpr));strip.height=Math.round(r.height*dpr);const g=strip.getContext('2d');let x=0;canvases.forEach((c,i)=>{const w=SLICE_W(i)/PXW*strip.width;g.drawImage(c,0,0,c.width,c.height,x,0,w+.5,strip.height);x+=w});g.fillStyle='rgba(212,167,72,.9)';SEC.forEach(m=>g.fillRect(m/TOTAL*strip.width,0,Math.max(1,dpr),strip.height*.18))}
+function setPos(s){st.s=st.sT=s;updateUI()}
+function updateUI(){const i=secAt(st.s);updateCaption(i);const m=st.s/TOTAL*REAL;document.getElementById('cMetre').textContent=m.toFixed(1)+' m from the start';scrub.setAttribute('aria-valuenow',m.toFixed(1));
+ const vw=renderer?viewWidth():1;const f0=(st.s-vw/2)/TOTAL,f1=(st.s+vw/2)/TOTAL;win.style.left=(Math.max(0,f0)*100)+'%';win.style.width=(Math.max(.004,Math.min(1,f1)-Math.max(0,f0))*100)+'%'}
+
+build();
+})();
+</script>
+
+</body>
+</html>
