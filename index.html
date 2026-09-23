@@ -69,7 +69,8 @@ button{font:inherit;color:inherit}
 .scrub canvas{position:absolute;inset:0;width:100%;height:100%;filter:saturate(.9) brightness(.8)}
 .win{position:absolute;top:0;bottom:0;border:2px solid var(--weld);border-radius:3px;box-shadow:0 0 0 999px rgba(10,8,5,.35);pointer-events:none}
 .credit{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;max-width:1180px;margin:2px auto 0;font-size:11.5px;color:var(--muted);line-height:1.4}
-.credit button{background:none;border:0;padding:0;color:var(--weld);font:inherit;font-weight:700;cursor:pointer;text-decoration:underline;text-underline-offset:2px}
+.cshort{display:none}
+.credit button{white-space:nowrap;background:none;border:0;padding:0;color:var(--weld);font:inherit;font-weight:700;cursor:pointer;text-decoration:underline;text-underline-offset:2px}
 .credit button:focus-visible{outline:2px solid var(--weld);outline-offset:2px}
 .tk-credit{margin:8px 0 0;font-size:11.5px;color:#6d5a40;line-height:1.35}
 .steps{list-style:none;counter-reset:st;margin:6px 0 4px;padding:0;display:grid;gap:12px}
@@ -192,6 +193,12 @@ button{font:inherit;color:inherit}
   .side .panel{padding:8px 10px}
   #fact{font-size:13.5px}
   .souvenir{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .meta .tl,#cTrad{display:none}
+  .meta{gap:10px;font-size:11px}
+  .cfull{display:none}
+  .credit{flex-wrap:nowrap;align-items:baseline}.credit .cshort{display:inline;min-width:0}
+  .card .row{flex-wrap:wrap}
+  .caption{margin-bottom:8px}
   .hunt li{grid-template-columns:26px minmax(0,1fr)}.hunt li .btn{grid-column:2;justify-self:start}
 
   .top{padding-left:16px;padding-right:16px}
@@ -255,7 +262,7 @@ button{font:inherit;color:inherit}
       <div class="win" id="win"></div>
     </div>
     <div class="ruler" id="ruler"></div>
-    <div class="credit"><span>Photography: La Fabrique de patrimoines en Normandie, 2017, for the City of Bayeux · DRAC Normandie · Université de Caen Normandie · CNRS · ENSICAEN, via Wikimedia Commons</span><button id="creditBtn">How this was made &amp; credits</button></div>
+    <div class="credit"><span class="cfull">Photography: La Fabrique de patrimoines en Normandie, 2017, for the City of Bayeux · DRAC Normandie · Université de Caen Normandie · CNRS · ENSICAEN, via Wikimedia Commons</span><span class="cshort">Photos: City of Bayeux · La Fabrique de patrimoines en Normandie, 2017</span><button id="creditBtn">How this was made &amp; credits</button></div>
   </div>
 </section>
 
@@ -607,11 +614,12 @@ const dockEl=document.querySelector('.dock'),topEl=document.querySelector('.top'
 function placePins(){if(!camera||!window.THREE)return;tmpV=tmpV||new THREE.Vector3();const w=innerWidth,h=innerHeight,yMin=topEl.querySelector('.tools').getBoundingClientRect().bottom+14,yMax=dockEl.getBoundingClientRect().top+30;SPOTS.forEach((sp,i)=>{const x=sp.x/PXM;const b=pinEls[i];if(!entered||Math.abs(x-st.s)>st.dist*2.4){b.hidden=true;return}
  tmpV.set(x,SLICE_H/PXM/2-sp.y/PXM,ripple(x,0)+.012).project(camera);if(tmpV.z>1||Math.abs(tmpV.x)>1.02||Math.abs(tmpV.y)>1.02){b.hidden=true;return}
  const px=(tmpV.x+1)/2*w,py=(1-tmpV.y)/2*h;if(py<yMin||py>yMax||px<14||px>w-14){b.hidden=true;return}b.hidden=false;b.style.transform=`translate(${px.toFixed(1)}px,${py.toFixed(1)}px)`})}
+function lookAtSpot(sp){const wy=SLICE_H/PXM/2-sp.y/PXM;st.sT=sp.x/PXM;st.distT=Math.min(st.distT,1.0);st.yawT=0;st.pitchT=.02;const h=innerHeight,yMin=document.querySelector('.tools').getBoundingClientRect().bottom+14,yMax=document.querySelector('.dock').getBoundingClientRect().top+20,band=(yMin+yMax)/2,wpp=2*st.distT*Math.tan(THREE.MathUtils.degToRad(camera.fov/2))/h;st.lyT=(wy-(h/2-band)*wpp)+.14*Math.min(1,st.distT/1.2);st.v=0;document.getElementById('angle').setAttribute('aria-pressed',false);if(st.walk)setWalk(false)}
 function openSheet(id,focusId){$(id).hidden=false;$(focusId).focus()}
 function closeSheet(id){$(id).hidden=true}
 function renderHunt(){const ol=$('huntList');ol.innerHTML='';SPOTS.map((sp,i)=>({sp,i})).forEach(({sp,i})=>{const li=document.createElement('li');const done=found.has(i);li.className=done?'done':'';
  li.innerHTML=`<span class="tick" aria-hidden="true">${done?'✓':''}</span><div><div class="t"></div><div class="h"></div></div><button class="btn">Take me there</button>`;li.querySelector('.t').textContent=done?sp.t:'Not spotted yet';li.querySelector('.h').textContent=sp.h;
- li.querySelector('button').onclick=()=>{closeSheet('huntSheet');st.sT=sp.x/PXM;st.distT=Math.min(st.distT,1.1);st.v=0;if(st.walk)setWalk(false)};ol.appendChild(li)})}
+ li.querySelector('button').onclick=()=>{closeSheet('huntSheet');lookAtSpot(sp)};ol.appendChild(li)})}
 $('huntBtn').onclick=()=>{renderHunt();openSheet('huntSheet','closeHunt')};$('closeHunt').onclick=()=>closeSheet('huntSheet');
 $('huntSheet').addEventListener('click',e=>{if(e.target.id==='huntSheet')closeSheet('huntSheet')});
 function openShop(){const[p,h]=tallyAt(TOTAL);$('souvenir').innerHTML=`<div><b>68.38 m</b><span>of linen</span></div><div><b>${found.size}/${SPOTS.length}</b><span>details spotted</span></div><div><b>≈${p}</b><span>people passed</span></div><div><b>≈${h}</b><span>horses passed</span></div>`;openSheet('shopSheet','closeShop')}
@@ -664,7 +672,7 @@ function enter(){if(entered)return;entered=true;const tk=document.getElementById
  setTimeout(()=>{loader.classList.add('done');st.distT=1.45;st.yawT=0;st.pitchT=.02;intro=performance.now()+3800;clearTimeout(hintT);hintT=setTimeout(hideHint,7000);document.getElementById('hint').classList.remove('gone');stage.focus?.()},reduce?0:520)}
 async function build(){
  try{await Promise.race([document.fonts.load('700 24px "Alegreya SC"'),new Promise(r=>setTimeout(r,2500))])}catch(e){}
- let n=0;const load=i=>new Promise((res,rej)=>{const im=new Image();im.decoding='async';im.onload=async()=>{try{await im.decode()}catch(e){}n++;loadMsg.textContent=`Unrolling the linen: ${n} of ${SLICES} lengths`;loadBar.style.width=(n/SLICES*100)+'%';
+ let n=0;const load=i=>new Promise((res,rej)=>{const im=new Image();im.decoding='async';im.onload=async()=>{try{await Promise.race([im.decode(),new Promise(r=>setTimeout(r,250))])}catch(e){}n++;loadMsg.textContent=`Unrolling the linen: ${n} of ${SLICES} lengths`;loadBar.style.width=(n/SLICES*100)+'%';
    if(small){const c=document.createElement('canvas');c.width=Math.round(im.naturalWidth/2);c.height=SLICE_H/2;c.getContext('2d').drawImage(im,0,0,c.width,c.height);res(c)}else res(im)};im.onerror=()=>rej(i);im.src='tap/t'+String(i+1).padStart(2,'0')+'.jpg'});
  try{const all=await Promise.all(Array.from({length:SLICES},(_,i)=>load(i)));canvases.push(...all)}catch(e){loadMsg.textContent='Part of the tapestry failed to load. Reload the page to try again.';return}
  if(!window.THREE||!webgl()){fallback();return}
@@ -674,7 +682,7 @@ function webgl(){try{const c=document.createElement('canvas');return!!(c.getCont
 function fallback(){const f=document.createElement('div');f.className='fallback';canvases.forEach(c=>f.appendChild(c));document.body.appendChild(f);stage.remove();gateReady();document.getElementById('hint').textContent='3D view unavailable here; scroll sideways instead';setupStrip();let idx=0;f.addEventListener('scroll',()=>{const s=f.scrollLeft/(f.scrollWidth-f.clientWidth||1)*TOTAL;setPos(s);});updateCaption(0);}
 
 let renderer,scene,camera,spot,fill;
-const st={s:.7,sT:.7,dist:3.8,distT:3.8,yaw:-.95,yawT:-.95,pitch:.32,pitchT:.32,v:0,walk:false};
+const st={s:.7,sT:.7,dist:3.8,distT:3.8,yaw:-.95,yawT:-.95,pitch:.32,pitchT:.32,v:0,walk:false,ly:0,lyT:0};
 function ripple(x,y){return .014*Math.sin(x*6.3)+.009*Math.sin(x*2.2+1.3)+.004*Math.sin(x*15.7+y*4)+.006*Math.sin(x*1.1)*(y+.25)}
 function world(){
  renderer=new THREE.WebGLRenderer({antialias:true});renderer.setPixelRatio(Math.min(devicePixelRatio,2));renderer.outputEncoding=THREE.sRGBEncoding;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.05;stage.appendChild(renderer.domElement);
@@ -703,14 +711,14 @@ function tick(now){const dt=Math.min(.05,(now-last)/1000);last=now;
  if(!entered){st.sT=.7+Math.sin(now/5000)*.15}
  st.sT=Math.max(.25,Math.min(TOTAL-.25,st.sT));st.distT=Math.max(.16,Math.min(3.4,st.distT));st.pitchT=Math.max(-.3,Math.min(.5,st.pitchT));
  const k=reduce?1:1-Math.pow(now<intro?.18:.0009,dt);st.s+=(st.sT-st.s)*k;st.dist+=(st.distT-st.dist)*k;st.yaw+=(st.yawT-st.yaw)*k*.8;st.pitch+=(st.pitchT-st.pitch)*k;
- const tx=st.s,ty=-.14*Math.min(1,st.dist/1.2),tz=0;camera.position.set(tx+st.dist*Math.sin(st.yaw)*Math.cos(st.pitch),ty+st.dist*Math.sin(st.pitch),tz+st.dist*Math.cos(st.yaw)*Math.cos(st.pitch));camera.lookAt(tx,ty,tz);
+ st.ly+=(st.lyT-st.ly)*(reduce?1:1-Math.pow(.02,dt));const tx=st.s,ty=-.14*Math.min(1,st.dist/1.2)+st.ly,tz=0;camera.position.set(tx+st.dist*Math.sin(st.yaw)*Math.cos(st.pitch),ty+st.dist*Math.sin(st.pitch),tz+st.dist*Math.cos(st.yaw)*Math.cos(st.pitch));camera.lookAt(tx,ty,tz);
  spot.position.set(tx-.5,1.35,1.1);spot.target.position.set(tx+.15,0,0);
  renderer.render(scene,camera);updateUI();updateExtras();requestAnimationFrame(tick)}
 
 /* ================= Input ================= */
 let dragging=false;
 function setupInput(){const ptrs=new Map();let lastX=0,lastY=0,lastT=0,pinch0=0,dist0=0;
- stage.addEventListener('pointerdown',e=>{stage.setPointerCapture(e.pointerId);ptrs.set(e.pointerId,{x:e.clientX,y:e.clientY});dragging=true;stage.classList.add('drag');lastX=e.clientX;lastY=e.clientY;lastT=performance.now();st.v=0;if(st.walk)setWalk(false);hideHint();if(ptrs.size===2){const[a,b]=[...ptrs.values()];pinch0=Math.hypot(a.x-b.x,a.y-b.y);dist0=st.distT}});
+ stage.addEventListener('pointerdown',e=>{st.lyT=0;stage.setPointerCapture(e.pointerId);ptrs.set(e.pointerId,{x:e.clientX,y:e.clientY});dragging=true;stage.classList.add('drag');lastX=e.clientX;lastY=e.clientY;lastT=performance.now();st.v=0;if(st.walk)setWalk(false);hideHint();if(ptrs.size===2){const[a,b]=[...ptrs.values()];pinch0=Math.hypot(a.x-b.x,a.y-b.y);dist0=st.distT}});
  stage.addEventListener('pointermove',e=>{if(!ptrs.has(e.pointerId))return;ptrs.set(e.pointerId,{x:e.clientX,y:e.clientY});
   if(ptrs.size===2){const[a,b]=[...ptrs.values()];const d=Math.hypot(a.x-b.x,a.y-b.y);if(pinch0)st.distT=dist0*pinch0/d;return}
   const dx=e.clientX-lastX,dy=e.clientY-lastY,now=performance.now();const m=viewWidth()/innerWidth*Math.cos(st.yaw);st.sT-=dx*m;st.s-=dx*m*.6;st.pitchT+=dy*.0025;const dtt=Math.max(1,now-lastT)/1000;st.v=-dx*m/dtt*.9;lastX=e.clientX;lastY=e.clientY;lastT=now});
@@ -728,7 +736,7 @@ function setupInput(){const ptrs=new Map();let lastX=0,lastY=0,lastT=0,pinch0=0,
  document.getElementById('prev').onclick=()=>go(tgt()-1);document.getElementById('next').onclick=()=>go(tgt()+1);
 }
 function tgt(){return secAt(st.sT)}
-function go(i){i=Math.max(0,Math.min(N-1,i));st.sT=SEC[i]+Math.min(.9,(secEnd(i)-SEC[i])/2);st.v=0;if(st.walk)setWalk(false);hideHint()}
+function go(i){st.lyT=0;i=Math.max(0,Math.min(N-1,i));st.sT=SEC[i]+Math.min(.9,(secEnd(i)-SEC[i])/2);st.v=0;if(st.walk)setWalk(false);hideHint()}
 function setWalk(on){st.walk=on;const b=document.getElementById('walk');b.setAttribute('aria-pressed',on);b.querySelector('.lbl').textContent=on?'Pause':'Walk';document.getElementById('walkIcon').setAttribute('d',on?'M4 2.5h3v11H4zM9 2.5h3v11H9z':'M4 2.5v11l9-5.5z');if(on){st.v=0;hideHint()}}
 function toggleAngle(){const on=st.yawT===0;st.yawT=on?-.62:0;if(on&&st.distT<1)st.distT=1.2;document.getElementById('angle').setAttribute('aria-pressed',on)}
 let hintT=0;document.getElementById('hint').classList.add('gone');function hideHint(){document.getElementById('hint').classList.add('gone')}
