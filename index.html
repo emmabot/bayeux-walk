@@ -68,6 +68,18 @@ button{font:inherit;color:inherit}
 .scrub{position:relative;height:46px;border-radius:4px;overflow:hidden;cursor:pointer;background:#2a2219;box-shadow:inset 0 0 0 1px var(--line);touch-action:none}
 .scrub canvas{position:absolute;inset:0;width:100%;height:100%;filter:saturate(.9) brightness(.8)}
 .win{position:absolute;top:0;bottom:0;border:2px solid var(--weld);border-radius:3px;box-shadow:0 0 0 999px rgba(10,8,5,.35);pointer-events:none}
+.credit{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;max-width:1180px;margin:2px auto 0;font-size:11.5px;color:var(--muted);line-height:1.4}
+.credit button{background:none;border:0;padding:0;color:var(--weld);font:inherit;font-weight:700;cursor:pointer;text-decoration:underline;text-underline-offset:2px}
+.credit button:focus-visible{outline:2px solid var(--weld);outline-offset:2px}
+.tk-credit{margin:8px 0 0;font-size:11.5px;color:#6d5a40;line-height:1.35}
+.steps{list-style:none;counter-reset:st;margin:6px 0 4px;padding:0;display:grid;gap:12px}
+.steps li{counter-increment:st;display:grid;grid-template-columns:30px minmax(0,1fr);gap:10px;font-size:15px;line-height:1.5}
+.steps li::before{content:counter(st);width:26px;height:26px;border-radius:50%;background:rgba(212,167,72,.16);border:1px solid rgba(212,167,72,.5);color:var(--weld);display:grid;place-items:center;font-weight:700;font-size:13px}
+.steps b{color:var(--text)}
+.stat{font-variant-numeric:tabular-nums;color:var(--weld);font-weight:700}
+.credits{list-style:none;margin:6px 0 0;padding:0;display:grid;gap:10px}
+.credits li{font-size:14.5px;line-height:1.5;padding-left:12px;border-left:2px solid var(--line)}
+.credits .who{font-weight:700;color:var(--text)}
 .ruler{position:relative;height:18px;margin-top:4px;font-size:11px;color:var(--muted);font-variant-numeric:tabular-nums;letter-spacing:.04em}
 .ruler span{position:absolute;top:0;transform:translateX(-50%);white-space:nowrap}
 .ruler span::before{content:"";position:absolute;left:50%;top:-4px;width:1px;height:4px;background:var(--muted)}
@@ -243,6 +255,7 @@ button{font:inherit;color:inherit}
       <div class="win" id="win"></div>
     </div>
     <div class="ruler" id="ruler"></div>
+    <div class="credit"><span>Photography: La Fabrique de patrimoines en Normandie, 2017, for the City of Bayeux · DRAC Normandie · Université de Caen Normandie · CNRS · ENSICAEN, via Wikimedia Commons</span><button id="creditBtn">How this was made &amp; credits</button></div>
   </div>
 </section>
 
@@ -260,6 +273,7 @@ button{font:inherit;color:inherit}
       </dl>
       <div class="bar"><i id="loadBar"></i></div>
       <p class="tk-load" id="loadMsg">Laying the linen…</p>
+      <p class="tk-credit">A non-commercial fan project using the official 2017 photography of the City of Bayeux, via Wikimedia Commons. Not affiliated with the British Museum or the Bayeux Museum.</p>
     </div>
     <button class="tk-stub" id="tear" disabled aria-describedby="loadMsg"><span class="notch t" aria-hidden="true"></span><span class="notch b" aria-hidden="true"></span>
       <span class="stub-in"><span class="stub-no">MLXVI</span><span class="stub-lbl">Gallery<br>entrance</span><span class="stub-cta" id="tearCta">Stitching…</span></span>
@@ -284,13 +298,41 @@ button{font:inherit;color:inherit}
     <ul class="timeline">
       <li><span class="yr">1476</span>The first written record. An inventory of Bayeux Cathedral lists a long embroidered hanging of the Conquest, put up around the nave each summer for the feast of the relics.</li>
       <li><span class="yr">1729</span>Scholars in Paris publish drawings of part of it, and the rest of Europe starts to take notice.</li>
-      <li><span class="yr">1792</span>During the Revolution it is commandeered to cover a military wagon. A local lawyer, Lambert Léonard-Leforestier, swaps in other cloth and hides it.</li>
+      <li><span class="yr">1792</span>During the Revolution it is nearly used to cover a military wagon. A local lawyer, Lambert Léonard Leforestier, steps in to save it.</li>
       <li><span class="yr">1803</span>Napoleon has it shown in Paris to rally support for his own planned invasion of England. The invasion never happens, and the tapestry goes home.</li>
-      <li><span class="yr">1886</span>Thirty-five women of the Leek Embroidery Society finish a full-size copy for England. They discreetly clothe the few naked figures. It hangs today in Reading.</li>
-      <li><span class="yr">1944</span>Moved to the Louvre during the war. As Paris is liberated, the SS try to take it to Germany. It stays.</li>
+      <li><span class="yr">1886</span>Thirty-five women of the Leek Embroidery Society finish a full-size copy for England. Working from cleaned-up Victorian photographs, they give a naked figure a pair of pants. It hangs today in Reading.</li>
+      <li><span class="yr">1944</span>Moved to the Louvre during the war. As Paris is liberated, the SS try to take it to Germany, according to the German commander of Paris. It stays.</li>
       <li><span class="yr">2026</span>It crosses the Channel the other way: on loan to the British Museum, back in England for the first time since it was made.</li>
     </ul>
-    <div class="row" style="gap:8px"><button class="btn" id="againBtn">Walk it again</button><button class="btn" id="closeShop">Back to the tapestry</button></div>
+    <div class="row" style="gap:8px"><button class="btn" id="againBtn">Walk it again</button><button class="btn" id="shopMaking">How this was made</button><button class="btn" id="closeShop">Back to the tapestry</button></div>
+  </div>
+</div>
+<div class="sheet" id="makingSheet" hidden>
+  <div class="card wide" role="dialog" aria-modal="true" aria-labelledby="makingTitle">
+    <h2 id="makingTitle">How this was made</h2>
+    <p class="sub">A gallery wall built in a morning by Claude, from open photography and open-source tools.</p>
+    <ol class="steps">
+      <li><div><b>Finding the source.</b> In 2017 the whole tapestry was photographed in high resolution by La Fabrique de patrimoines en Normandie for the City of Bayeux and DRAC Normandie, with the Université de Caen Normandie, CNRS and ENSICAEN. Scene-by-scene files are on Wikimedia Commons, marked as public domain. The 58 traditional scenes come as <span class="stat">56</span> overlapping images: two pairs of scenes share a file.</div></li>
+      <li><div><b>Stitching the strip.</b> Each scene was loaded at 800 pixels tall, and the point where it overlaps the next scene was found by sliding a narrow band of one image along the other until the stitches matched. Joined end to end, the strip measures <span class="stat">69,502</span> pixels. The full-length master file, scaled the same way, measures <span class="stat">69,491</span>: the joins agree to within <span class="stat">0.02%</span>.</div></li>
+      <li><div><b>Cropping to the cloth.</b> The backing fabric and scene numbers were trimmed away by measuring where the embroidery's texture begins and ends. The result is <span class="stat">17</span> slices of 4,096 × 512 pixels, about <span class="stat">10</span> pixels for every centimetre of linen, 9 MB in all.</div></li>
+      <li><div><b>Hanging it.</b> Each slice becomes a gently rippled plane in a 3D gallery built with three.js, lit by a spotlight that follows you along the wall. The ruler and metre readout are to true scale: 68.38 metres.</div></li>
+      <li><div><b>Placing the pins.</b> Every spot-it pin was located by viewing the photography with pixel rulers laid over it, so each one sits on the real stitches it describes.</div></li>
+      <li><div><b>Writing and checking.</b> Claude wrote the captions, notes and facts, and a separate Claude agent then fact-checked every claim against museum and scholarly sources: it made 15 corrections, from a coronation date to a misplaced line of Latin. Where historians disagree, the text says so. The running tally of people, horses and ships is an estimate.</div></li>
+      <li><div><b>The ticket.</b> The little hunting party on the ticket is an original drawing, stitched in code in the tapestry's style.</div></li>
+    </ol>
+    <h3>Credits</h3>
+    <ul class="credits" id="creditList">
+      <li><span class="who">The Bayeux Tapestry</span>: embroidered in England around 1070–1080, probably for Bishop Odo of Bayeux. Owned and cared for by the City of Bayeux at the <a href="https://www.bayeuxmuseum.com/en/" target="_blank" rel="noopener">Bayeux Museum</a>.</li>
+      <li><span class="who">Photography</span>: "Official digital representation of the Bayeux Tapestry, 11th century. Credits: City of Bayeux, DRAC Normandie, University of Caen Normandie, CNRS, Ensicaen. Photos: 2017, La Fabrique de patrimoines en Normandie." <a href="https://www.bayeuxmuseum.com/en/the-bayeux-tapestry/discover-the-bayeux-tapestry/explore-online/" target="_blank" rel="noopener">Explore it online at the Bayeux Museum</a>.</li>
+      <li><span class="who">Wikimedia Commons</span> and its volunteers, who host and catalogue the <a href="https://commons.wikimedia.org/wiki/Category:2017_high-resolution_photography_of_the_Bayeux_Tapestry" target="_blank" rel="noopener">scene-by-scene files</a>. Commons marks them as public domain (PD-Art: faithful photographs of a public-domain work). The Bayeux Museum asks that its images be used non-commercially, and this is a non-commercial fan project.</li>
+      <li><span class="who">The British Museum</span>, whose <a href="https://www.britishmuseum.org/exhibitions/bayeux-tapestry" target="_blank" rel="noopener">exhibition</a> (10 September 2026 to 11 July 2027, Room 30) inspired this walk. Go and see the real thing if you can.</li>
+      <li><span class="who">Reading Museum</span>, for its research on <a href="https://www.readingmuseum.org.uk/collections/britains-bayeux-tapestry" target="_blank" rel="noopener">Britain's Bayeux Tapestry</a> and the figure counts used in the tally.</li>
+      <li><span class="who">Wikipedia</span> contributors, whose <a href="https://en.wikipedia.org/wiki/Bayeux_Tapestry_tituli" target="_blank" rel="noopener">transcription of the Latin inscriptions</a> (CC BY-SA 4.0) was used to check the captions, with English Heritage, Westminster Abbey and NASA among the sources for the facts.</li>
+      <li><span class="who">three.js</span> by Ricardo Cabello (mrdoob) and contributors, MIT licence, served by <span class="who">cdnjs</span>.</li>
+      <li><span class="who">Typefaces</span> from Google Fonts under the SIL Open Font License: Alegreya, Alegreya SC and Alegreya Sans by Juan Pablo del Peral (Huerta Tipográfica), and Uncial Antiqua by Astigmatic.</li>
+    </ul>
+    <p style="margin-top:14px;font-size:13.5px;color:var(--muted)">This is an independent fan project. It is not affiliated with or endorsed by the British Museum, the Bayeux Museum or the photographers.</p>
+    <div class="row"><button class="btn" id="closeMaking">Back to the tapestry</button></div>
   </div>
 </div>
 <div class="sheet" id="sheet" hidden>
@@ -301,16 +343,16 @@ button{font:inherit;color:inherit}
     <h3>At the British Museum</h3>
     <p>On loan from France, it is back in England for the first time since it was made: Room 30, 10 September 2026 to 11 July 2027. Tickets through December are sold out; January to March 2027 tickets go on sale 21 October 2026. <a href="https://www.britishmuseum.org/exhibitions/bayeux-tapestry" target="_blank" rel="noopener">Exhibition page</a></p>
     <h3>About this viewer</h3>
-    <p>This is the real tapestry, hung at true scale: the 2017 high-resolution photography by the Université de Caen Normandie, CNRS and ENSICAEN, published on <a href="https://commons.wikimedia.org/wiki/Category:2017_high-resolution_photography_of_the_Bayeux_Tapestry" target="_blank" rel="noopener">Wikimedia Commons</a> as public domain. The 56 scene photographs were joined into one continuous strip and cropped to the cloth, at about 10 pixels per centimetre. The captions group the traditional 58 scenes into 30 sections; the Latin is given with abbreviations expanded and spelling lightly regularised. The little ticket illustration is an original drawing in the tapestry's style.</p>
+    <p>This is the real tapestry, hung at true scale, from the official 2017 photography: made by La Fabrique de patrimoines en Normandie for the City of Bayeux and DRAC Normandie, with the Université de Caen Normandie, CNRS and ENSICAEN. Wikimedia Commons hosts the scene-by-scene files and marks them as public domain. The scene files were joined into one continuous strip and cropped to the cloth. The captions group the 58 traditional scenes into 30 sections, and the Latin is given with abbreviations expanded and spelling lightly regularised. Captions and facts were fact-checked against museum and scholarly sources; see "How this was made".</p>
     <h3>The extras</h3>
-    <p>The running count of people, horses and ships is an estimate spread across the scenes and scaled to the commonly cited totals of about 626 people, 190 horses and 41 ships. Published counts vary. The map is a rough sketch for orientation.</p>
+    <p>The running count of people, horses and ships is an estimate spread across the scenes and scaled to Reading Museum's count of about 626 people, 190 horses and 37 ships. Other counts differ a little: some give 41 ships and boats. The map is a rough sketch for orientation.</p>
     <h3>Getting around</h3>
     <ul>
       <li>Drag, scroll, or <kbd>←</kbd> <kbd>→</kbd> to walk. <kbd>[</kbd> <kbd>]</kbd> jump a section.</li>
       <li>Pinch, <kbd>+</kbd> <kbd>−</kbd> or ctrl-scroll to look closer. Drag up and down to tilt.</li>
       <li><kbd>Space</kbd> walks on its own; <kbd>A</kbd> swings to a gallery angle.</li>
     </ul>
-    <div class="row"><button class="btn" id="closeInfo">Back to the tapestry</button></div>
+    <div class="row" style="gap:8px"><button class="btn" id="infoMaking">How this was made &amp; credits</button><button class="btn" id="closeInfo">Back to the tapestry</button></div>
   </div>
 </div>
 
@@ -319,12 +361,12 @@ button{font:inherit;color:inherit}
 (()=>{
 /* ================= Scene data ================= */
 const SCENES=[
- {t:"1",la:"EDWARDUS REX · UBI HAROLD DUX ANGLORUM ET SUI MILITES EQUITANT AD BOSHAM",en:"King Edward. Where Harold, earl of the English, and his knights ride to Bosham.",no:"The old king sends Harold on a mission, probably to Normandy. Harold sets out with a hawk on his wrist and hounds running ahead: an aristocrat at leisure."},
+ {t:"1–2",la:"EDWARDUS REX · UBI HAROLD DUX ANGLORUM ET SUI MILITES EQUITANT AD BOSHAM",en:"King Edward. Where Harold, earl of the English, and his knights ride to Bosham.",no:"The old king sends Harold on a mission, probably to Normandy. Harold sets out with a hawk on his wrist and hounds running ahead: an aristocrat at leisure."},
  {t:"3–4",la:"ECCLESIA · HIC HAROLD MARE NAVIGAVIT",en:"A church. Here Harold sailed the sea.",no:"Harold prays at Bosham church, then his men wade out to the ships with their tunics hitched up, carrying the hounds."},
  {t:"5",la:"ET VELIS VENTO PLENIS VENIT IN TERRAM WIDONIS COMITIS",en:"And with sails full of wind he came to the land of Count Guy.",no:"The ships are the same clinker-built vessels the Normans will later use, with striped sails and a beast's head at the prow."},
  {t:"7–8",la:"HIC APPREHENDIT WIDO HAROLDUM ET DUXIT EUM AD BELREM",en:"Here Guy seized Harold and led him to Beaurain.",no:"Harold lands in Ponthieu and is taken by Count Guy's men. Captives of rank were valuable, and Guy intends to profit."},
  {t:"9–10",la:"UBI HAROLD ET WIDO PARABOLANT",en:"Where Harold and Guy talk together.",no:"Guy sits enthroned with his sword; Harold stands before him. Outside, a figure lurks behind a column, perhaps an informer."},
- {t:"11–12",la:"UBI NUNTII WILLELMI DUCIS VENERUNT AD WIDONEM",en:"Where Duke William's messengers came to Guy.",no:"Word reaches William, who demands Harold's release. His envoys gallop with their hair flying, the Normans shaven at the back of the head."},
+ {t:"10–12",la:"UBI NUNTII WILLELMI DUCIS VENERUNT AD WIDONEM",en:"Where Duke William's messengers came to Guy.",no:"Word reaches William, who demands Harold's release. His envoys gallop with their hair flying, the Normans shaven at the back of the head."},
  {t:"14",la:"HIC DUX WILLELM CUM HAROLDO VENIT AD PALATIUM SUUM",en:"Here Duke William came with Harold to his palace.",no:"William receives Harold at his hall. From here Harold is treated as a guest, and as a companion in arms."},
  {t:"15",la:"UBI UNUS CLERICUS ET ÆLFGYVA",en:"Where a clerk and Ælfgyva.",no:"One of the tapestry's great puzzles: the sentence has no verb, and nobody is sure who Ælfgyva was. She is one of only three women in the main story."},
  {t:"16",la:"HIC WILLEM DUX ET EXERCITUS EIUS VENERUNT AD MONTEM MICHAELIS",en:"Here Duke William and his army came to Mont-Saint-Michel.",no:"The campaign against Conan of Brittany begins. The abbey sits on its rock above the tidal sands."},
@@ -336,7 +378,7 @@ const SCENES=[
  {t:"24–25",la:"HIC HAROLD DUX REVERSUS EST AD ANGLICAM TERRAM",en:"Here Earl Harold returned to the English land.",no:"Harold comes home to Edward. His head is bowed and his posture humble: something has gone wrong, and a lookout watches from a balcony."},
  {t:"26",la:"HIC PORTATUR CORPUS EADWARDI REGIS AD ECCLESIAM SANCTI PETRI APOSTOLI",en:"Here King Edward's body is carried to the church of Saint Peter the Apostle.",no:"Edward's bier goes to his new abbey at Westminster, so new that a workman is still fixing the weathercock on the roof. Two boys ring bells beneath the bier."},
  {t:"27–28",la:"HIC EADWARDUS REX IN LECTO ALLOQUITUR FIDELES · ET HIC DEFUNCTUS EST",en:"Here King Edward in bed speaks to his faithful men. And here he died.",no:"The tapestry tells this out of order: the funeral first, then the deathbed. Above, the dying king speaks; below, his body is wrapped for burial."},
- {t:"29–31",la:"HIC DEDERUNT HAROLDO CORONAM REGIS · HIC RESIDET HAROLD REX ANGLORUM",en:"Here they gave Harold the king's crown. Here sits Harold, king of the English.",no:"Harold is crowned the day after the funeral, holding orb and sceptre. Beside him stands Archbishop Stigand, a figure the Normans considered improperly appointed."},
+ {t:"29–31",la:"HIC DEDERUNT HAROLDO CORONAM REGIS · HIC RESIDET HAROLD REX ANGLORUM",en:"Here they gave Harold the king's crown. Here sits Harold, king of the English.",no:"Harold is crowned on 6 January 1066, the same day as Edward's funeral, holding orb and sceptre. Beside him stands Archbishop Stigand, a figure the Normans considered improperly appointed."},
  {t:"32–33",la:"ISTI MIRANT STELLAM",en:"These men marvel at the star.",no:"Halley's Comet appeared in April 1066 and was read as an omen. In the border below, ghostly ships without colour hint at the invasion to come."},
  {t:"35–36",la:"HIC WILLELM DUX IUSSIT NAVES AEDIFICARE",en:"Here Duke William ordered ships to be built.",no:"A carpentry scene with real tools: axes for felling, adzes for shaping planks, and hulls taking shape plank by plank."},
  {t:"37",la:"HIC TRAHUNT NAVES AD MARE · ISTI PORTANT ARMAS AD NAVES",en:"Here they drag the ships to the sea. These men carry arms to the ships.",no:"Mail shirts were so heavy they are carried on poles between two men. A cart brings wine and a rack of spears."},
@@ -344,8 +386,8 @@ const SCENES=[
  {t:"43",la:"ET HIC EPISCOPUS CIBUM ET POTUM BENEDICIT",en:"And here the bishop blesses the food and drink.",no:"Cooks roast meat on spits and serve it on skewers. At a curved table, Bishop Odo, William's half-brother, blesses the meal."},
  {t:"45",la:"ISTE IUSSIT UT FODERETUR CASTELLUM AT HESTENGA CEASTRA",en:"This man ordered a castle to be dug at Hastings.",no:"Men with spades throw up a motte. The Latin slips into English at the end: 'ceastra' is an Old English word for a fortified place."},
  {t:"47",la:"HIC DOMUS INCENDITUR",en:"Here a house is set on fire.",no:"A rare glimpse of civilians in war: a woman leads her child out of a burning house as soldiers torch it."},
- {t:"49–50",la:"HIC WILLELM DUX INTERROGAT VITAL SI VIDISSET EXERCITUM HAROLDI",en:"Here Duke William asks Vital whether he had seen Harold's army.",no:"On the morning of 14 October 1066 William's scouts report from the hills. An English lookout watches from the other side."},
- {t:"51–52",la:"HIC FRANCI PUGNANT · HIC CECIDERUNT LEWINE ET GYRD FRATRES HAROLDI REGIS",en:"Here the French fight. Here fell Leofwine and Gyrth, King Harold's brothers.",no:"Norman cavalry charge the English shield wall. The English fight on foot, some swinging two-handed axes. In the border, the fallen pile up."},
+ {t:"49–50",la:"HIC WILLELM DUX INTERROGAT VITAL SI VIDISSET HAROLDI EXERCITUM",en:"Here Duke William asks Vital whether he had seen Harold's army.",no:"On the morning of 14 October 1066 William's scouts report from the hills. An English lookout watches from the other side."},
+ {t:"51–52",la:"HIC CECIDERUNT LEWINE ET GYRD FRATRES HAROLDI REGIS",en:"Here fell Leofwine and Gyrth, King Harold's brothers.",no:"Norman cavalry charge the English shield wall. The English fight on foot, some swinging two-handed axes. In the border, the fallen pile up."},
  {t:"54–55",la:"HIC ODO EPISCOPUS BACULUM TENENS CONFORTAT PUEROS · HIC EST WILLELM DUX",en:"Here Bishop Odo, holding a club, rallies the young men. Here is Duke William.",no:"A rumour spreads that William is dead. He pushes up his helmet to show his face, and Odo rallies the wavering knights. Archers fill the lower border."},
  {t:"57",la:"HIC HAROLD REX INTERFECTUS EST",en:"Here King Harold was killed.",no:"The most debated image in the tapestry: is Harold the man pulling at an arrow near his eye, the man cut down by a horseman, or both? The stitching itself was altered in later restorations."},
  {t:"58",la:"ET FUGA VERTERUNT ANGLI",en:"And the English turned to flight.",no:"The last surviving section. The true ending is lost, and much of this final stretch is later restoration: look for the change in colour and texture near the end."}
@@ -505,8 +547,8 @@ function linen(i){X.fillStyle='#d8c7a0';X.fillRect(0,0,W,H);
 /* ================= Hunt, facts, map, tally ================= */
 const SPOTS=[
  {x:3200,y:470,t:"The fox and the crow",d:"In the lower border, a fox looks up at a crow holding a piece of cheese. It is Aesop's fable about flattery. Aesop's fables turn up several times in the borders, perhaps as sly comments on the main story.",h:"Look down at the border as Harold's men wade out to the ships."},
- {x:9865,y:285,t:"Turold",d:"A small bearded man holding the horses is labelled TUROLD. He is one of only a handful of people named on the tapestry, and nobody knows why he earned it. Perhaps whoever commissioned it knew him.",h:"Among Duke William's messengers."},
- {x:15860,y:290,t:"Ælfgyva",d:"A woman stands in a doorway while a cleric reaches out to touch her face. The caption says only 'where a cleric and Ælfgyva' and stops. It was clearly a scandal everyone knew in the 1070s, and nobody can decode it now.",h:"Just after William's palace."},
+ {x:9865,y:285,t:"Turold",d:"The name TUROLD is stitched beside a small bearded man holding the horses, though it may belong to the messenger next to him instead. Either way, he is one of only about fifteen people named on the tapestry, and nobody knows why he earned it.",h:"Among Duke William's messengers."},
+ {x:15860,y:290,t:"Ælfgyva",d:"A woman stands in a doorway while a cleric reaches out to touch her face. The caption says only 'where a cleric and Ælfgyva' and stops. It was probably a story people knew at the time, perhaps a scandal, but nobody can decode it now.",h:"Just after William's palace."},
  {x:26724,y:240,t:"The weathercock",d:"A workman fixes the weathercock on the roof of Westminster Abbey. The abbey was consecrated only days before Edward died, and it is still being finished as his funeral arrives.",h:"On the church roof as Edward's body is carried in."},
  {x:27460,y:405,t:"The bell-ringers",d:"Beneath King Edward's bier walk two boys, each ringing a pair of hand bells: a small glimpse of an 11th-century royal funeral.",h:"Under the funeral bier."},
  {x:30195,y:48,t:"Halley's Comet",d:"The 'star' the men marvel at is Halley's Comet, which blazed across the sky in April 1066 and was read as an omen of doom. It returns about every 76 years: last seen in 1986, next due in 2061.",h:"Look up, above the crowd pointing at the sky."},
@@ -519,13 +561,13 @@ const FACTS=[
  "It isn't a tapestry. A tapestry is woven; this is embroidery, with coloured wool stitched onto a long strip of linen.",
  "Harold carries a hawk on his wrist in the opening scenes. Hawks were a badge of high rank, so he is being introduced as a great nobleman.",
  "The whole thing is nine pieces of linen sewn end to end. The joins are hidden so well that they are hard to find even when you know to look.",
- "Only a handful of people are named on the whole tapestry, out of more than 600 figures.",
+ "Only about fifteen people are named on the whole tapestry, out of more than 600 figures.",
  "Look at the hair. The English are drawn with moustaches; most Normans are clean-shaven, with the backs of their heads shaved.",
  "The lower border here shows farm work in miniature: ploughing, sowing seed, a horse drawing a harrow and a slinger scaring off birds.",
  "The embroiderers used about ten colours of wool from three dye plants: madder for reds, weld for yellows and woad for blues. The greens come from dyeing with two of them.",
  "In the border beneath Ælfgyva, a naked man copies the cleric's pose. Whatever the joke was, the embroiderers expected people to get it.",
  "Mont-Saint-Michel is shown as a church on a mound above the tidal sands. It was already a famous pilgrimage site at the time.",
- "The river Couesnon, where Harold rescues the soldiers, still marks the border between Normandy and Brittany.",
+ "The river Couesnon, where Harold rescues the soldiers, is the traditional border between Normandy and Brittany. It famously left Mont-Saint-Michel on the Norman side.",
  "Conan of Brittany escapes the castle at Dol by sliding down a rope. The castles are drawn as mottes: a tower on an earth mound, with a bridge up to the gate.",
  "Conan surrenders by passing the castle keys out on the tip of a lance, a gesture everyone at the time would have understood.",
  "When William gives Harold arms, it is more than a gift. To Norman eyes it made Harold William's man, and that is the start of the case against him.",
@@ -533,13 +575,13 @@ const FACTS=[
  "Two stitches do almost all the work: stem stitch for outlines and letters, and laid-and-couched work, now called Bayeux stitch, for the solid colours.",
  "Westminster Abbey was consecrated on 28 December 1065. King Edward was too ill to attend, and he died about a week later.",
  "The story runs backwards here. You see the funeral first, then the deathbed above and Edward's body being prepared below.",
- "The archbishop beside Harold is Stigand, whom the pope did not recognise. Showing him quietly questions whether the coronation was valid.",
+ "The archbishop beside Harold is Stigand, whom the pope did not recognise. Showing him may be a quiet hint that the coronation was not valid; in fact Harold was probably crowned by Ealdred, Archbishop of York.",
  "Halley's Comet appeared in April 1066. This is one of the oldest surviving pictures of it.",
  "The tools are shown in detail: axes to fell the trees, adzes to shape the planks, and augers to bore the holes.",
  "Everything gets loaded, including a cask of wine on a cart. Mail shirts were so heavy that two men carry each one on a pole.",
  "The fleet crossed overnight on 27–28 September 1066, sailing from Saint-Valery-sur-Somme and landing at Pevensey.",
  "The foragers here are led by a man labelled WADARD. A knight of that name held land in Kent from Bishop Odo, a strong hint that Odo paid for the tapestry.",
- "'Ceastra' at the end of the caption is an Old English word, not Latin: one of the clues that English embroiderers did the stitching.",
+ "'Ceastra' at the end of the caption is Old English, not Latin: one of several English spellings that suggest the tapestry was designed in England.",
  "Only three women appear in the main story: Ælfgyva, Queen Edith at Edward's deathbed, and this mother escaping the burning house. A few more appear in the borders.",
  "Vital, the scout William questions here, also turns up in the records as a tenant of Bishop Odo in Kent, like Wadard.",
  "The English fought on foot in a shield wall, some swinging huge two-handed axes. The Normans relied on cavalry and archers.",
@@ -550,7 +592,7 @@ const FACTS=[
 const PLACES={westminster:[-0.13,51.5,"Westminster"],bosham:[-0.86,50.83,"Bosham"],ponthieu:[1.62,50.25,"Ponthieu"],beaurain:[1.77,50.47,"Beaurain"],rouen:[1.10,49.44,"Rouen"],msm:[-1.51,48.64,"Mont-Saint-Michel"],dol:[-1.75,48.55,"Dol"],dinan:[-2.05,48.45,"Dinan"],bayeux:[-0.70,49.28,"Bayeux"],dives:[-0.10,49.29,"Dives-sur-Mer"],valery:[1.63,50.18,"Saint-Valery"],pevensey:[0.33,50.82,"Pevensey"],hastings:[0.59,50.86,"Hastings"],battle:[0.49,50.91,"Battle"]};
 const SEC_PLACE=["bosham","bosham","ponthieu","beaurain","beaurain","beaurain","rouen","rouen","msm","msm","dol","dinan","dinan","bayeux","bosham","westminster","westminster","westminster","westminster","dives","dives","pevensey","hastings","hastings","hastings","battle","battle","battle","battle","battle"];
 const TP=[12,15,14,14,12,14,14,8,14,16,14,18,6,10,12,20,14,16,16,16,20,30,26,18,16,40,50,40,40,30],TH=[4,0,0,4,0,6,4,0,8,6,6,8,2,0,2,0,0,0,0,0,0,10,4,4,6,20,30,24,24,18],TS=[0,4,3,1,0,0,0,0,0,0,0,0,0,0,2,0,0,0,1,8,6,14,1,0,0,0,0,0,0,0];
-const norm=(a,T)=>{const t=a.reduce((x,y)=>x+y,0);return a.map(v=>v*T/t)};const NP=norm(TP,626),NH=norm(TH,190),NS=norm(TS,41);
+const norm=(a,T)=>{const t=a.reduce((x,y)=>x+y,0);return a.map(v=>v*T/t)};const NP=norm(TP,626),NH=norm(TH,190),NS=norm(TS,37);
 function tallyAt(m){const i=secAt(m),f=Math.max(0,Math.min(1,(m-SEC[i])/(secEnd(i)-SEC[i])));const sum=a=>a.slice(0,i).reduce((x,y)=>x+y,0)+a[i]*f;return[sum(NP),sum(NH),sum(NS)].map(Math.round)}
 const found=new Set();try{JSON.parse(localStorage.getItem('bayeux-found')||'[]').forEach(i=>found.add(i))}catch(e){}
 const saveFound=()=>{try{localStorage.setItem('bayeux-found',JSON.stringify([...found]))}catch(e){}};
@@ -575,6 +617,9 @@ $('huntSheet').addEventListener('click',e=>{if(e.target.id==='huntSheet')closeSh
 function openShop(){const[p,h]=tallyAt(TOTAL);$('souvenir').innerHTML=`<div><b>68.38 m</b><span>of linen</span></div><div><b>${found.size}/${SPOTS.length}</b><span>details spotted</span></div><div><b>≈${p}</b><span>people passed</span></div><div><b>≈${h}</b><span>horses passed</span></div>`;openSheet('shopSheet','closeShop')}
 $('exitBtn').onclick=openShop;$('closeShop').onclick=()=>closeSheet('shopSheet');
 $('shopSheet').addEventListener('click',e=>{if(e.target.id==='shopSheet')closeSheet('shopSheet')});
+function openMaking(){for(const id of['sheet','shopSheet','huntSheet'])$(id).hidden=true;openSheet('makingSheet','closeMaking')}
+$('creditBtn').onclick=openMaking;$('shopMaking').onclick=openMaking;$('infoMaking').onclick=openMaking;$('closeMaking').onclick=()=>closeSheet('makingSheet');
+$('makingSheet').addEventListener('click',e=>{if(e.target.id==='makingSheet')closeSheet('makingSheet')});
 $('againBtn').onclick=()=>{closeSheet('shopSheet');st.sT=.7;st.v=0;st.distT=1.45};
 const side=$('side'),sideBtn=$('sideBtn');
 sideBtn.onclick=()=>{const on=!side.classList.contains('open');side.classList.toggle('open',on);sideBtn.setAttribute('aria-pressed',on)};
@@ -672,7 +717,7 @@ function setupInput(){const ptrs=new Map();let lastX=0,lastY=0,lastT=0,pinch0=0,
  const up=e=>{ptrs.delete(e.pointerId);if(ptrs.size<2)pinch0=0;if(ptrs.size===0){dragging=false;stage.classList.remove('drag');if(performance.now()-lastT>80)st.v=0}};
  stage.addEventListener('pointerup',up);stage.addEventListener('pointercancel',up);
  stage.addEventListener('wheel',e=>{e.preventDefault();hideHint();if(st.walk)setWalk(false);if(e.ctrlKey){st.distT*=Math.exp(e.deltaY*.01)}else{const d=Math.abs(e.deltaX)>Math.abs(e.deltaY)?e.deltaX:e.deltaY;st.sT+=d*.0018*st.dist}},{passive:false});
- addEventListener('keydown',e=>{if(!entered)return;if(e.key==='Escape'){for(const id of['huntSheet','shopSheet'])if(!$(id).hidden){closeSheet(id);return}if(!$('pop').hidden){$('pop').hidden=true;return}}if(!$('huntSheet').hidden||!$('shopSheet').hidden)return;if(!document.getElementById('sheet').hidden){if(e.key==='Escape')closeInfo();return}const k=e.key;
+ addEventListener('keydown',e=>{if(!entered)return;if(e.key==='Escape'){for(const id of['huntSheet','shopSheet','makingSheet'])if(!$(id).hidden){closeSheet(id);return}if(!$('pop').hidden){$('pop').hidden=true;return}}if(!$('huntSheet').hidden||!$('shopSheet').hidden||!$('makingSheet').hidden)return;if(!document.getElementById('sheet').hidden){if(e.key==='Escape')closeInfo();return}const k=e.key;
   if(k==='ArrowRight'){st.sT+=.25*st.dist;hideHint()}else if(k==='ArrowLeft'){st.sT-=.25*st.dist;hideHint()}
   else if(k===']'||k==='PageDown')go(tgt()+1);else if(k==='['||k==='PageUp')go(tgt()-1);
   else if(k==='+'||k==='='){st.distT*=.8}else if(k==='-'||k==='_'){st.distT*=1.25}
